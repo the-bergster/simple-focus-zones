@@ -40,10 +40,6 @@ const FocusZone = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Initialize all state hooks at the top level
-  const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
-  const [listToDelete, setListToDelete] = useState<string | null>(null);
-  
   const {
     focusZone,
     lists,
@@ -51,8 +47,12 @@ const FocusZone = () => {
     loading,
     setCards,
     setLists,
+    refetch,
   } = useFocusZone(id);
 
+  const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
+  
   const {
     createList,
     deleteList,
@@ -118,7 +118,6 @@ const FocusZone = () => {
     const activeCard = cards.find(card => card.id === active.id);
     if (!activeCard) return;
 
-    // Handle dropping on a list
     const overList = lists.find(list => list.id === over.id);
     if (overList) {
       setCards(prevCards => {
@@ -130,7 +129,7 @@ const FocusZone = () => {
           newCards[activeIndex] = {
             ...newCards[activeIndex],
             list_id: overList.id,
-            position: listCards.length, // Put at the end of the list
+            position: listCards.length,
           };
         }
         
@@ -139,7 +138,6 @@ const FocusZone = () => {
       return;
     }
 
-    // Handle dropping on another card
     const overCard = cards.find(card => card.id === over.id);
     if (overCard && activeCard.list_id !== overCard.list_id) {
       setCards(prevCards => {
@@ -174,16 +172,13 @@ const FocusZone = () => {
       const overCard = cards.find(card => card.id === over.id);
 
       if (overList) {
-        // Dropping on a list
         newListId = overList.id;
         const listCards = cards.filter(card => card.list_id === overList.id);
         newPosition = listCards.length;
       } else if (overCard) {
-        // Dropping on another card
         newListId = overCard.list_id;
         
         if (activeCard.list_id === overCard.list_id) {
-          // Reordering within the same list
           const listCards = cards
             .filter(card => card.list_id === overCard.list_id)
             .sort((a, b) => a.position - b.position);
@@ -191,10 +186,8 @@ const FocusZone = () => {
           const oldIndex = listCards.findIndex(card => card.id === activeCard.id);
           const newIndex = listCards.findIndex(card => card.id === overCard.id);
 
-          // Update positions for all affected cards
           const updates = listCards.map((card, index) => {
             if (oldIndex < newIndex) {
-              // Moving down
               if (index >= oldIndex && index <= newIndex) {
                 const newPos = index === newIndex ? oldIndex : index - 1;
                 return supabase
@@ -203,7 +196,6 @@ const FocusZone = () => {
                   .eq('id', card.id);
               }
             } else {
-              // Moving up
               if (index >= newIndex && index <= oldIndex) {
                 const newPos = index === newIndex ? oldIndex : index + 1;
                 return supabase
@@ -217,11 +209,9 @@ const FocusZone = () => {
 
           await Promise.all(updates);
           
-          // Update local state
           setCards(prevCards => {
             const newCards = [...prevCards];
             if (oldIndex < newIndex) {
-              // Moving down
               newCards.forEach(card => {
                 if (card.list_id === overCard.list_id) {
                   if (card.id === activeCard.id) {
@@ -232,7 +222,6 @@ const FocusZone = () => {
                 }
               });
             } else {
-              // Moving up
               newCards.forEach(card => {
                 if (card.list_id === overCard.list_id) {
                   if (card.id === activeCard.id) {
@@ -246,10 +235,8 @@ const FocusZone = () => {
             return newCards;
           });
         } else {
-          // Moving to a different list
           newPosition = overCard.position;
           
-          // Shift cards in the target list
           const targetListCards = cards
             .filter(card => card.list_id === overCard.list_id)
             .sort((a, b) => a.position - b.position);
@@ -273,7 +260,6 @@ const FocusZone = () => {
 
           await Promise.all(updates);
 
-          // Update local state
           setCards(prevCards => {
             const newCards = [...prevCards];
             newCards.forEach(card => {
@@ -325,11 +311,11 @@ const FocusZone = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'lists'
+          table: 'lists',
+          filter: `focus_zone_id=eq.${id}`
         },
-        () => {
-          // Refetch lists when any changes occur
-          fetchLists();
+        async (payload) => {
+          await refetch();
         }
       )
       .subscribe();
@@ -337,7 +323,7 @@ const FocusZone = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, refetch]);
 
   if (loading) {
     return (
