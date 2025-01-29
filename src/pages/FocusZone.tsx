@@ -9,6 +9,7 @@ import { useFocusZone } from '@/hooks/useFocusZone';
 import { useListOperations } from '@/hooks/useListOperations';
 import { useCardOperations } from '@/hooks/useCardOperations';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { Card } from '@/types/focus-zone';
 
 const FocusZone = () => {
@@ -43,6 +44,32 @@ const FocusZone = () => {
     setActiveCard,
     createCard,
   } = useCardOperations(setCards);
+
+  // Subscribe to real-time updates for lists
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel('list-focus-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lists',
+          filter: `focus_zone_id=eq.${id}`
+        },
+        () => {
+          // Refetch lists when any changes occur
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, refetch]);
 
   const handleAddList = async () => {
     const defaultTitle = "New List";

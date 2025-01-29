@@ -1,34 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-interface FocusZone {
-  id: string;
-  title: string;
-  description: string | null;
-  owner_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface List {
-  id: string;
-  title: string;
-  position: number;
-  focus_zone_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Card {
-  id: string;
-  title: string;
-  description: string | null;
-  position: number;
-  list_id: string;
-  created_at: string;
-  updated_at: string;
-}
+import type { FocusZone, List, Card } from '@/types/focus-zone';
 
 export const useFocusZone = (id: string | undefined) => {
   const { toast } = useToast();
@@ -116,18 +89,18 @@ export const useFocusZone = (id: string | undefined) => {
     }
   };
 
-  const fetchAll = async () => {
+  const refetch = useCallback(async () => {
     setLoading(true);
     const focusZoneData = await fetchFocusZone();
     if (focusZoneData) {
       await Promise.all([fetchLists(), fetchCards()]);
     }
     setLoading(false);
-  };
+  }, [id]);
 
   useEffect(() => {
-    fetchAll();
-  }, [id]);
+    refetch();
+  }, [refetch]);
 
   return {
     focusZone,
@@ -136,6 +109,6 @@ export const useFocusZone = (id: string | undefined) => {
     loading,
     setLists,
     setCards,
-    refetch: fetchAll,
+    refetch,
   };
 };
