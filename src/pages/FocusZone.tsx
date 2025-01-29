@@ -302,8 +302,8 @@ const FocusZone = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
-        <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex items-center justify-between gap-4">
+        <div className="w-full px-8 py-4">
+          <div className="flex items-center justify-between">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/dashboard')}
@@ -312,9 +312,9 @@ const FocusZone = () => {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Button>
-            <div className="pr-8">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">{focusZone?.title}</h1>
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {focusZone?.title}
+            </h1>
           </div>
         </div>
       </div>
