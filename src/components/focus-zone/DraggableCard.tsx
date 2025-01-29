@@ -85,7 +85,7 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 p-0 opacity-60 hover:opacity-100 transition-opacity"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
