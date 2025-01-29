@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,19 @@ import { PlusCircle, Loader2, Edit, Trash, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+} from '@dnd-kit/core';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 interface List {
   id: string;
@@ -53,6 +66,7 @@ const FocusZone = () => {
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [editingList, setEditingList] = useState<List | null>(null);
   const [activeListId, setActiveListId] = useState<string | null>(null);
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
 
   const listForm = useForm<z.infer<typeof listFormSchema>>({
     resolver: zodResolver(listFormSchema),
@@ -68,6 +82,13 @@ const FocusZone = () => {
       description: "",
     },
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetchFocusZone();
@@ -301,6 +322,73 @@ const FocusZone = () => {
     await createCard(data);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const draggedCard = cards.find(card => card.id === active.id);
+    if (draggedCard) {
+      setActiveCard(draggedCard);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeCard = cards.find(card => card.id === active.id);
+    const overList = lists.find(list => list.id === over.id);
+
+    if (activeCard && overList) {
+      setActiveListId(overList.id);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+
+    const activeCard = cards.find(card => card.id === active.id);
+    const overList = lists.find(list => list.id === over.id);
+
+    if (activeCard && overList) {
+      const oldListCards = cards.filter(card => card.list_id === activeCard.list_id);
+      const newListCards = cards.filter(card => card.list_id === overList.id);
+      
+      try {
+        const { error } = await supabase
+          .from('cards')
+          .update({
+            list_id: overList.id,
+            position: newListCards.length
+          })
+          .eq('id', activeCard.id);
+
+        if (error) throw error;
+
+        // Update local state
+        setCards(cards.map(card => 
+          card.id === activeCard.id
+            ? { ...card, list_id: overList.id, position: newListCards.length }
+            : card
+        ));
+
+        toast({
+          title: "Card moved",
+          description: "Card has been moved to new list successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error moving card",
+          description: error instanceof Error ? error.message : "An error occurred",
+          variant: "destructive",
+        });
+      }
+    }
+
+    setActiveCard(null);
+    setActiveListId(null);
+  };
+
   if (!focusZone && loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -310,7 +398,7 @@ const FocusZone = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8]">
+    <div className="min-h-screen bg-[#f0f2f5]">
       <div className="fixed top-0 left-0 right-0 bg-white border-b z-10 px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -325,6 +413,7 @@ const FocusZone = () => {
               )}
             </div>
           </div>
+          
           <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingList(null)} size="sm">
@@ -365,9 +454,6 @@ const FocusZone = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Card</DialogTitle>
-            <DialogDescription>
-              Create a new card for your list.
-            </DialogDescription>
           </DialogHeader>
           <Form {...cardForm}>
             <form onSubmit={cardForm.handleSubmit(onCardSubmit)} className="space-y-4">
@@ -412,80 +498,113 @@ const FocusZone = () => {
       ) : (
         <div className="pt-24 px-8 pb-8">
           <div className="max-w-full mx-auto">
-            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
-              {lists.map((list) => (
-                <div key={list.id} className="flex-none w-[300px]">
-                  <div className="bg-[#f0f1f3] rounded-lg p-4 h-full">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-sm">{list.title}</h3>
-                      <div className="flex gap-1">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
+                {lists.map((list) => (
+                  <div 
+                    key={list.id} 
+                    className="flex-none w-[300px]"
+                  >
+                    <div 
+                      className="bg-white rounded-lg p-4 shadow-md min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto"
+                      style={{
+                        minHeight: cards.filter(card => card.list_id === list.id).length === 0 ? '100px' : 'auto'
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-medium text-sm">{list.title}</h3>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setEditingList(list);
+                              setIsListDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => deleteList(list.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {cards
+                          .filter(card => card.list_id === list.id)
+                          .sort((a, b) => a.position - b.position)
+                          .map(card => (
+                            <Card 
+                              key={card.id} 
+                              className="bg-white border shadow-sm hover:shadow-md transition-shadow cursor-move"
+                            >
+                              <CardHeader className="p-3">
+                                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                                {card.description && (
+                                  <CardDescription className="text-xs">
+                                    {card.description}
+                                  </CardDescription>
+                                )}
+                              </CardHeader>
+                            </Card>
+                          ))}
                         <Button
                           variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
+                          className="w-full justify-start text-muted-foreground hover:text-foreground"
+                          size="sm"
                           onClick={() => {
-                            setEditingList(list);
-                            setIsListDialogOpen(true);
+                            setActiveListId(list.id);
+                            setIsCardDialogOpen(true);
                           }}
                         >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => deleteList(list.id)}
-                        >
-                          <Trash className="h-4 w-4" />
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Add a card
                         </Button>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      {cards
-                        .filter(card => card.list_id === list.id)
-                        .sort((a, b) => a.position - b.position)
-                        .map(card => (
-                          <Card key={card.id} className="bg-white">
-                            <CardHeader className="p-3">
-                              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                              {card.description && (
-                                <CardDescription className="text-xs">
-                                  {card.description}
-                                </CardDescription>
-                              )}
-                            </CardHeader>
-                          </Card>
-                        ))}
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-muted-foreground hover:text-foreground"
-                        size="sm"
-                        onClick={() => {
-                          setActiveListId(list.id);
-                          setIsCardDialogOpen(true);
-                        }}
-                      >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add a card
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              ))}
-              {lists.length === 0 && (
-                <div className="flex items-center justify-center w-full">
-                  <Card className="w-[300px]">
-                    <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
-                      <CardDescription>No lists yet</CardDescription>
-                      <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Your First List
-                      </Button>
-                    </CardContent>
+                ))}
+                {lists.length === 0 && (
+                  <div className="flex items-center justify-center w-full">
+                    <Card className="w-[300px]">
+                      <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
+                        <CardDescription>No lists yet</CardDescription>
+                        <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Create Your First List
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+              <DragOverlay>
+                {activeCard ? (
+                  <Card className="bg-white border shadow-lg w-[280px]">
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm font-medium">{activeCard.title}</CardTitle>
+                      {activeCard.description && (
+                        <CardDescription className="text-xs">
+                          {activeCard.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
                   </Card>
-                </div>
-              )}
-            </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           </div>
         </div>
       )}
