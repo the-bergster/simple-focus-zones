@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, Plus } from "lucide-react";
 import {
   DndContext,
@@ -281,14 +281,6 @@ const FocusZone = () => {
     setActiveListId(null);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const AddListButton = () => (
     <button
       onClick={handleAddList}
@@ -298,6 +290,14 @@ const FocusZone = () => {
       <span className="text-sm font-medium">Add another list</span>
     </button>
   );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -314,9 +314,6 @@ const FocusZone = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-foreground">{focusZone?.title}</h1>
-              {focusZone?.description && (
-                <p className="text-sm text-muted-foreground">{focusZone.description}</p>
-              )}
             </div>
           </div>
         </div>
