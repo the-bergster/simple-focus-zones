@@ -4,17 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(
-  'https://e41069b3-beaf-41c9-b9bb-50bc64cb3e57.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImU0MTA2OWIzLWJlYWYtNDFjOS1iOWJiLTUwYmM2NGNiM2U1NyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzA5NzQ4NTY5LCJleHAiOjIwMjUzMjQ1Njl9.Kj7vqHoYKKW-qnzNwCQnUqKaHGVRZ7YI6K_dEacFD6E'
-);
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
@@ -30,6 +25,9 @@ const Login = () => {
           email,
           password,
           options: {
+            data: {
+              username: username,
+            },
             emailRedirectTo: `${window.location.origin}/login`
           }
         });
@@ -70,6 +68,19 @@ const Login = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="border-[#C8C8C9]"
+                  required={isSignUp}
+                  minLength={3}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Input
                 type="email"
