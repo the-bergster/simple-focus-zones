@@ -1,8 +1,14 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
-import { Edit, Trash, PlusCircle } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { DraggableCard } from "./DraggableCard";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface List {
   id: string;
@@ -51,27 +57,34 @@ export const DroppableList = ({
       ref={setNodeRef}
       className="flex-none w-[320px]"
     >
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-medium text-sm tracking-tight">{list.title}</h3>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => onEditList(list)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive/50 hover:text-destructive"
-              onClick={() => onDeleteList(list.id)}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300">
+        <div className="flex items-center justify-between mb-4 group">
+          <h3 className="font-medium text-sm tracking-tight text-slate-800">{list.title}</h3>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40 bg-white/95 backdrop-blur-xl border-slate-200/60">
+              <DropdownMenuItem 
+                onClick={() => onEditList(list)}
+                className="text-sm cursor-pointer text-slate-600 hover:text-slate-900 focus:text-slate-900"
+              >
+                Edit List
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onDeleteList(list.id)}
+                className="text-sm cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
+              >
+                Delete List
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="space-y-2">
           <SortableContext
@@ -86,12 +99,11 @@ export const DroppableList = ({
           </SortableContext>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground group"
+            className="w-full justify-start text-slate-400 hover:text-slate-600 hover:bg-slate-50/50 group"
             size="sm"
             onClick={() => onAddCard(list.id)}
           >
-            <PlusCircle className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            Add a card
+            <span className="text-sm">Add a card</span>
           </Button>
         </div>
       </div>
