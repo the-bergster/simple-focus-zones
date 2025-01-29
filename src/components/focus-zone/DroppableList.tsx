@@ -126,6 +126,16 @@ export const DroppableList = ({
     setIsEditing(true);
   };
 
+  const handleDropdownAction = (action: 'edit' | 'delete') => (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (action === 'edit') {
+      setIsEditing(true);
+    } else if (action === 'delete') {
+      onDeleteList(list.id);
+    }
+  };
+
   return (
     <div 
       ref={setNodeRef}
@@ -134,7 +144,7 @@ export const DroppableList = ({
       <div className="bg-slate-100/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           {isEditing ? (
-            <form onSubmit={handleTitleSubmit} className="flex-1 mr-2">
+            <form onSubmit={handleTitleSubmit} className="flex-1 mr-2" onClick={(e) => e.stopPropagation()}>
               <Input
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
@@ -164,13 +174,13 @@ export const DroppableList = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 bg-white/95 backdrop-blur-xl border-slate-200/60">
               <DropdownMenuItem 
-                onClick={() => setIsEditing(true)}
+                onSelect={handleDropdownAction('edit')}
                 className="text-sm cursor-pointer text-slate-600 hover:text-slate-900 focus:text-slate-900"
               >
                 Edit List
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => onDeleteList(list.id)}
+                onSelect={handleDropdownAction('delete')}
                 className="text-sm cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
               >
                 Delete List
