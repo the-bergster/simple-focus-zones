@@ -84,17 +84,33 @@ const FocusZone = () => {
     const activeCard = cards.find(card => card.id === active.id);
     if (!activeCard) return;
 
+    // Handle dropping on a list
     const overList = lists.find(list => list.id === over.id);
     if (overList) {
-      setActiveListId(overList.id);
+      setCards(prevCards => {
+        const newCards = [...prevCards];
+        const activeIndex = newCards.findIndex(card => card.id === activeCard.id);
+        
+        if (activeIndex !== -1) {
+          const listCards = newCards.filter(card => card.list_id === overList.id);
+          newCards[activeIndex] = {
+            ...newCards[activeIndex],
+            list_id: overList.id,
+            position: listCards.length, // Put at the end of the list
+          };
+        }
+        
+        return newCards;
+      });
+      return;
     }
 
+    // Handle dropping on another card
     const overCard = cards.find(card => card.id === over.id);
     if (overCard && activeCard.list_id !== overCard.list_id) {
       setCards(prevCards => {
         const newCards = [...prevCards];
         const activeIndex = newCards.findIndex(card => card.id === activeCard.id);
-        const overIndex = newCards.findIndex(card => card.id === overCard.id);
         
         if (activeIndex !== -1) {
           newCards[activeIndex] = {
