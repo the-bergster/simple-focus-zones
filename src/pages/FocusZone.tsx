@@ -33,7 +33,9 @@ const FocusZone = () => {
   const {
     createList,
     deleteList,
-  } = useListOperations(id!, setLists);
+  } = useListOperations(id!, (newLists: List[]) => {
+    setLists(newLists);
+  });
 
   const {
     isCardDialogOpen,
@@ -44,32 +46,6 @@ const FocusZone = () => {
     setActiveCard,
     createCard,
   } = useCardOperations(setCards);
-
-  // Subscribe to real-time updates for lists
-  useEffect(() => {
-    if (!id) return;
-
-    const channel = supabase
-      .channel('list-focus-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lists',
-          filter: `focus_zone_id=eq.${id}`
-        },
-        () => {
-          // Refetch lists when any changes occur
-          refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [id, refetch]);
 
   const handleAddList = async () => {
     const defaultTitle = "New List";
@@ -133,7 +109,7 @@ const FocusZone = () => {
         open={deleteListWarningOpen}
         onOpenChange={setDeleteListWarningOpen}
         title="Delete List"
-        description="Are you sure you want to delete this list? All cards in this list will be permanently deleted."
+        description="Are you sure you want to delete this list and all its cards? This action cannot be undone."
         confirmText="Delete"
         onConfirm={() => {
           if (listToDelete) {

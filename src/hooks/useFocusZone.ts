@@ -98,6 +98,32 @@ export const useFocusZone = (id: string | undefined) => {
     setLoading(false);
   }, [id]);
 
+  // Subscribe to real-time updates for lists
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel('list-focus-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lists',
+          filter: `focus_zone_id=eq.${id}`
+        },
+        () => {
+          // Refetch lists when any changes occur
+          fetchLists();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   useEffect(() => {
     refetch();
   }, [refetch]);
