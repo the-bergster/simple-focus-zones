@@ -77,6 +77,8 @@ const FocusZone = () => {
   );
 
   const fetchFocusZone = async () => {
+    if (!id) return;
+    
     try {
       const { data, error } = await supabase
         .from('focus_zones')
@@ -95,16 +97,21 @@ const FocusZone = () => {
         return;
       }
       setFocusZone(data);
+      await fetchLists();
     } catch (error) {
+      console.error('Error fetching focus zone:', error);
       toast({
         title: "Error fetching Focus Zone",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
+      setLoading(false);
     }
   };
 
   const fetchLists = async () => {
+    if (!id) return;
+
     try {
       const { data, error } = await supabase
         .from('lists')
@@ -114,7 +121,9 @@ const FocusZone = () => {
 
       if (error) throw error;
       setLists(data || []);
+      await fetchCards();
     } catch (error) {
+      console.error('Error fetching lists:', error);
       toast({
         title: "Error fetching lists",
         description: error instanceof Error ? error.message : "An error occurred",
@@ -126,17 +135,18 @@ const FocusZone = () => {
   };
 
   const fetchCards = async () => {
+    if (!id) return;
+
     try {
-      const listIds = lists.map(list => list.id);
       const { data, error } = await supabase
         .from('cards')
         .select('*')
-        .in('list_id', listIds)
         .order('position');
 
       if (error) throw error;
       setCards(data || []);
     } catch (error) {
+      console.error('Error fetching cards:', error);
       toast({
         title: "Error fetching cards",
         description: error instanceof Error ? error.message : "An error occurred",
@@ -144,6 +154,10 @@ const FocusZone = () => {
       });
     }
   };
+
+  useEffect(() => {
+    fetchFocusZone();
+  }, [id]);
 
   const createList = async (data: z.infer<typeof listFormSchema>) => {
     try {
@@ -465,6 +479,7 @@ const FocusZone = () => {
         description: "Card has been moved successfully.",
       });
     } catch (error) {
+      console.error('Error moving card:', error);
       toast({
         title: "Error moving card",
         description: error instanceof Error ? error.message : "An error occurred",
@@ -476,10 +491,10 @@ const FocusZone = () => {
     setActiveListId(null);
   };
 
-  if (!focusZone && loading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex justify-center items-center min-h-screen bg-[#f0f2f5]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -542,9 +557,15 @@ const FocusZone = () => {
                   key={list.id}
                   list={list}
                   cards={cards.filter(card => card.list_id === list.id)}
-                  onEditList={setEditingList}
+                  onEditList={(list) => {
+                    setEditingList(list);
+                    setIsListDialogOpen(true);
+                  }}
                   onDeleteList={deleteList}
-                  onAddCard={setActiveListId}
+                  onAddCard={(listId) => {
+                    setActiveListId(listId);
+                    setIsCardDialogOpen(true);
+                  }}
                 />
               ))}
               {lists.length === 0 && (
