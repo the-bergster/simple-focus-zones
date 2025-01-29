@@ -24,12 +24,15 @@ import { useListOperations } from '@/hooks/useListOperations';
 import { useCardOperations } from '@/hooks/useCardOperations';
 import { useToast } from "@/hooks/use-toast";
 import { WarningDialog } from "@/components/ui/warning-dialog";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const FocusZone = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Initialize all state hooks at the top level
+  const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
   
   const {
     focusZone,
@@ -55,11 +58,6 @@ const FocusZone = () => {
     createCard,
   } = useCardOperations(setCards);
 
-  const handleAddList = async () => {
-    const defaultTitle = "New List";
-    await createList({ title: defaultTitle });
-  };
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -70,6 +68,30 @@ const FocusZone = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleAddList = async () => {
+    const defaultTitle = "New List";
+    await createList({ title: defaultTitle });
+  };
+
+  const handleDeleteListClick = (listId: string) => {
+    setListToDelete(listId);
+    setDeleteListWarningOpen(true);
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    try {
+      await deleteList(listId);
+      setDeleteListWarningOpen(false);
+      setListToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Error deleting list",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -292,28 +314,6 @@ const FocusZone = () => {
       </div>
     );
   }
-
-  const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
-  const [listToDelete, setListToDelete] = useState<string | null>(null);
-
-  const handleDeleteListClick = (listId: string) => {
-    setListToDelete(listId);
-    setDeleteListWarningOpen(true);
-  };
-
-  const handleDeleteList = async (listId: string) => {
-    try {
-      await deleteList(listId);
-      setDeleteListWarningOpen(false);
-      setListToDelete(null);
-    } catch (error) {
-      toast({
-        title: "Error deleting list",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
