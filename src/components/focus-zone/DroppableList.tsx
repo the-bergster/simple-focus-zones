@@ -107,11 +107,18 @@ export const DroppableList = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
       handleTitleSubmit();
     } else if (e.key === 'Escape') {
       setEditedTitle(list.title);
       setIsEditing(false);
     }
+  };
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsEditing(true);
   };
 
   return (
@@ -133,7 +140,7 @@ export const DroppableList = ({
           ) : (
             <h3 
               className="font-medium text-sm tracking-tight text-slate-700 cursor-pointer hover:text-slate-900"
-              onClick={() => setIsEditing(true)}
+              onClick={handleTitleClick}
             >
               {list.title}
             </h3>
