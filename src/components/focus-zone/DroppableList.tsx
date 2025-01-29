@@ -1,18 +1,9 @@
-import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MoreHorizontal } from "lucide-react";
 import { DraggableCard } from "./DraggableCard";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ListTitle } from "./ListTitle";
+import { ListActions } from "./ListActions";
 
 interface List {
   id: string;
@@ -48,9 +39,6 @@ export const DroppableList = ({
   onDeleteList,
   onAddCard,
 }: DroppableListProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(list.title);
-  const { toast } = useToast();
   const { setNodeRef } = useSortable({
     id: list.id,
     data: {
@@ -59,81 +47,11 @@ export const DroppableList = ({
     },
   });
 
-  const handleTitleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    if (editedTitle.trim() === '') {
-      toast({
-        title: "Invalid title",
-        description: "Title cannot be empty",
-        variant: "destructive",
-      });
-      setEditedTitle(list.title);
-      setIsEditing(false);
-      return;
-    }
-
-    if (editedTitle.trim() !== list.title) {
-      try {
-        const { error } = await supabase
-          .from('lists')
-          .update({ title: editedTitle.trim() })
-          .eq('id', list.id);
-
-        if (error) throw error;
-
-        const updatedList = {
-          ...list,
-          title: editedTitle.trim()
-        };
-        
-        onEditList(updatedList);
-
-        toast({
-          title: "List updated",
-          description: "List title has been updated successfully.",
-        });
-      } catch (error) {
-        console.error('Error updating list:', error);
-        toast({
-          title: "Error updating list",
-          description: error instanceof Error ? error.message : "An error occurred",
-          variant: "destructive",
-        });
-        setEditedTitle(list.title);
-      }
-    }
-    setIsEditing(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleTitleSubmit();
-    } else if (e.key === 'Escape') {
-      setEditedTitle(list.title);
-      setIsEditing(false);
-    }
-  };
-
-  const handleTitleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsEditing(true);
-  };
-
-  const handleDropdownAction = (action: 'edit' | 'delete') => (e: Event) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (action === 'edit') {
-      setIsEditing(true);
-    } else if (action === 'delete') {
-      onDeleteList(list.id);
-    }
+  const handleTitleUpdate = (newTitle: string) => {
+    onEditList({
+      ...list,
+      title: newTitle
+    });
   };
 
   return (
@@ -143,50 +61,15 @@ export const DroppableList = ({
     >
       <div className="bg-slate-100/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
-          {isEditing ? (
-            <form onSubmit={handleTitleSubmit} className="flex-1 mr-2" onClick={(e) => e.stopPropagation()}>
-              <Input
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                onBlur={handleTitleSubmit}
-                onKeyDown={handleKeyDown}
-                className="h-7 text-sm font-medium"
-                autoFocus
-              />
-            </form>
-          ) : (
-            <h3 
-              className="font-medium text-sm tracking-tight text-slate-700 cursor-pointer hover:text-slate-900"
-              onClick={handleTitleClick}
-            >
-              {list.title}
-            </h3>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-slate-400 hover:text-slate-600"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-white/95 backdrop-blur-xl border-slate-200/60">
-              <DropdownMenuItem 
-                onSelect={handleDropdownAction('edit')}
-                className="text-sm cursor-pointer text-slate-600 hover:text-slate-900 focus:text-slate-900"
-              >
-                Edit List
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onSelect={handleDropdownAction('delete')}
-                className="text-sm cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
-              >
-                Delete List
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ListTitle
+            listId={list.id}
+            initialTitle={list.title}
+            onTitleUpdate={handleTitleUpdate}
+          />
+          <ListActions
+            onEdit={() => onEditList(list)}
+            onDelete={() => onDeleteList(list.id)}
+          />
         </div>
         <div className="space-y-2">
           <SortableContext
