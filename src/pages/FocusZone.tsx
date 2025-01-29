@@ -103,6 +103,74 @@ const DraggableCard = ({ card }: { card: Card }) => {
   );
 };
 
+const DroppableList = ({ list, cards }: { list: List, cards: Card[] }) => {
+  const { setNodeRef } = useSortable({
+    id: list.id,
+    data: {
+      type: 'list',
+      list,
+    },
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className="flex-none w-[300px]"
+    >
+      <div className="bg-white rounded-lg p-4 shadow-md min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-medium text-sm">{list.title}</h3>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                setEditingList(list);
+                setIsListDialogOpen(true);
+              }}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => deleteList(list.id)}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <SortableContext
+            items={cards.map(card => card.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {cards
+              .sort((a, b) => a.position - b.position)
+              .map(card => (
+                <DraggableCard key={card.id} card={card} />
+              ))}
+          </SortableContext>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            size="sm"
+            onClick={() => {
+              setActiveListId(list.id);
+              setIsCardDialogOpen(true);
+            }}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add a card
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FocusZone = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -383,16 +451,37 @@ const FocusZone = () => {
     }
   };
 
-  const handleDragOver = async (event: DragOverEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const activeCard = cards.find(card => card.id === active.id);
     if (!activeCard) return;
 
+    // If dropping over a list
     const overList = lists.find(list => list.id === over.id);
-    if (overList && activeCard.list_id !== overList.id) {
+    if (overList) {
       setActiveListId(overList.id);
+    }
+
+    // If dropping over another card
+    const overCard = cards.find(card => card.id === over.id);
+    if (overCard && activeCard.list_id !== overCard.list_id) {
+      setCards(prevCards => {
+        const newCards = [...prevCards];
+        const activeIndex = newCards.findIndex(card => card.id === activeCard.id);
+        const overIndex = newCards.findIndex(card => card.id === overCard.id);
+        
+        if (activeIndex !== -1) {
+          newCards[activeIndex] = {
+            ...newCards[activeIndex],
+            list_id: overCard.list_id,
+            position: overCard.position,
+          };
+        }
+        
+        return newCards;
+      });
     }
   };
 
@@ -403,42 +492,55 @@ const FocusZone = () => {
     const activeCard = cards.find(card => card.id === active.id);
     if (!activeCard) return;
 
-    const overList = lists.find(list => list.id === over.id);
-    if (!overList) return;
+    try {
+      let newListId = activeCard.list_id;
+      let newPosition = activeCard.position;
 
-    if (activeCard.list_id !== overList.id) {
-      try {
-        const newListCards = cards.filter(card => card.list_id === overList.id);
-        const newPosition = newListCards.length;
-
-        const { error } = await supabase
-          .from('cards')
-          .update({
-            list_id: overList.id,
-            position: newPosition,
-          })
-          .eq('id', activeCard.id);
-
-        if (error) throw error;
-
-        // Update local state
-        setCards(cards.map(card =>
-          card.id === activeCard.id
-            ? { ...card, list_id: overList.id, position: newPosition }
-            : card
-        ));
-
-        toast({
-          title: "Card moved",
-          description: "Card has been moved to new list successfully.",
-        });
-      } catch (error) {
-        toast({
-          title: "Error moving card",
-          description: error instanceof Error ? error.message : "An error occurred",
-          variant: "destructive",
-        });
+      // If dropping over a list
+      const overList = lists.find(list => list.id === over.id);
+      if (overList) {
+        newListId = overList.id;
+        const listCards = cards.filter(card => card.list_id === overList.id);
+        newPosition = listCards.length;
       }
+
+      // If dropping over another card
+      const overCard = cards.find(card => card.id === over.id);
+      if (overCard) {
+        newListId = overCard.list_id;
+        newPosition = overCard.position;
+      }
+
+      // Update the card in the database
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          list_id: newListId,
+          position: newPosition,
+        })
+        .eq('id', activeCard.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setCards(prevCards =>
+        prevCards.map(card =>
+          card.id === activeCard.id
+            ? { ...card, list_id: newListId, position: newPosition }
+            : card
+        )
+      );
+
+      toast({
+        title: "Card moved",
+        description: "Card has been moved successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error moving card",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
     }
 
     setActiveCard(null);
@@ -563,72 +665,11 @@ const FocusZone = () => {
             >
               <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
                 {lists.map((list) => (
-                  <div 
-                    key={list.id} 
-                    className="flex-none w-[300px]"
-                  >
-                    <div 
-                      className="bg-white rounded-lg p-4 shadow-md min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto"
-                      style={{
-                        minHeight: cards.filter(card => card.list_id === list.id).length === 0 ? '100px' : 'auto'
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-medium text-sm">{list.title}</h3>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              setEditingList(list);
-                              setIsListDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => deleteList(list.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div
-                        className="space-y-2"
-                        data-list-id={list.id}
-                      >
-                        <SortableContext
-                          items={cards
-                            .filter(card => card.list_id === list.id)
-                            .map(card => card.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {cards
-                            .filter(card => card.list_id === list.id)
-                            .sort((a, b) => a.position - b.position)
-                            .map(card => (
-                              <DraggableCard key={card.id} card={card} />
-                            ))}
-                        </SortableContext>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-muted-foreground hover:text-foreground"
-                          size="sm"
-                          onClick={() => {
-                            setActiveListId(list.id);
-                            setIsCardDialogOpen(true);
-                          }}
-                        >
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Add a card
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <DroppableList
+                    key={list.id}
+                    list={list}
+                    cards={cards.filter(card => card.list_id === list.id)}
+                  />
                 ))}
                 {lists.length === 0 && (
                   <div className="flex items-center justify-center w-full">
