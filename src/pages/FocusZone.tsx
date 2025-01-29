@@ -328,7 +328,7 @@ const FocusZone = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
-        <div className="max-w-[1800px] mx-auto w-full px-4 py-4">
+        <div className="max-w-[1800px] mx-auto w-full py-4">
           <div className="flex items-center justify-between">
             <Button 
               variant="ghost" 
@@ -365,7 +365,7 @@ const FocusZone = () => {
       />
 
       <div className="pt-24 w-full">
-        <div className="max-w-[1800px] mx-auto px-4">
+        <div className="max-w-[1800px] mx-auto">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
