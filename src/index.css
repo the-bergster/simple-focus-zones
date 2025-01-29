@@ -50,11 +50,11 @@
 }
 
 .task-list {
-  @apply min-w-[300px] bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/20;
+  @apply min-w-[300px] bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border-2 border-border/30;
 }
 
 .task-card {
-  @apply bg-card/90 backdrop-blur-sm rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 border border-border/10;
+  @apply bg-card/90 backdrop-blur-sm rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 border-2 border-border/20;
 }
 
 /* Custom scrollbar for Webkit browsers */

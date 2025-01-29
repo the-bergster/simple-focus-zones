@@ -50,7 +50,7 @@ export const DroppableList = ({
       ref={setNodeRef}
       className="flex-none w-[320px]"
     >
-      <div className="bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300">
+      <div className="bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border-2 border-border/30 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <ListTitle
             listId={list.id}
@@ -60,7 +60,7 @@ export const DroppableList = ({
             onDelete={() => onDeleteList(list.id)}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <SortableContext
             items={cards.map(card => card.id)}
             strategy={verticalListSortingStrategy}
@@ -73,7 +73,7 @@ export const DroppableList = ({
           </SortableContext>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 group"
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 group mt-2"
             size="sm"
             onClick={() => onAddCard(list.id)}
           >
