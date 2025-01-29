@@ -53,7 +53,7 @@ export const DroppableList = ({
       ref={setNodeRef}
       className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
     >
-      <div className={`pt-3 px-3 pb-3 -mt-3 -mx-3`}>
+      <div className={`pt-3 px-3 pb-3 -mt-3 -mx-3 mt-2`}>
         <div className={`bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border transition-all duration-300 
           ${list.is_focused 
             ? 'border-primary/50 ring-2 ring-primary/30 shadow-lg shadow-primary/20' 
