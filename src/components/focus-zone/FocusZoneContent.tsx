@@ -4,8 +4,7 @@ import { ListsContainer } from '@/components/focus-zone/ListsContainer';
 import { WarningDialog } from "@/components/ui/warning-dialog";
 import { useListOperations } from '@/hooks/useListOperations';
 import { useCardOperations } from '@/hooks/useCardOperations';
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useDragAndDrop } from './hooks/useDragAndDrop';
 import type { Card, List } from '@/types/focus-zone';
 
 interface FocusZoneContentProps {
@@ -23,7 +22,6 @@ export const FocusZoneContent = ({
   setLists,
   setCards,
 }: FocusZoneContentProps) => {
-  const { toast } = useToast();
   const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<string | null>(null);
   
@@ -37,10 +35,15 @@ export const FocusZoneContent = ({
     setIsCardDialogOpen,
     activeListId,
     setActiveListId,
-    activeCard,
-    setActiveCard,
     createCard,
   } = useCardOperations(setCards);
+
+  const {
+    activeCard,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useDragAndDrop(cards, setCards);
 
   const handleAddList = async () => {
     const defaultTitle = "New List";
@@ -58,11 +61,7 @@ export const FocusZoneContent = ({
       setDeleteListWarningOpen(false);
       setListToDelete(null);
     } catch (error) {
-      toast({
-        title: "Error deleting list",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
+      console.error('Error deleting list:', error);
     }
   };
 
@@ -96,97 +95,9 @@ export const FocusZoneContent = ({
           setActiveListId(listId);
           setIsCardDialogOpen(true);
         }}
-        onDragStart={(event) => {
-          const draggedCard = cards.find(card => card.id === event.active.id);
-          if (draggedCard) {
-            setActiveCard(draggedCard);
-          }
-        }}
-        onDragOver={(event) => {
-          const { active, over } = event;
-          if (!over) return;
-
-          const activeCard = cards.find(card => card.id === active.id);
-          if (!activeCard) return;
-
-          const overList = lists.find(list => list.id === over.id);
-          if (overList) {
-            const listCards = cards.filter(card => card.list_id === overList.id);
-            const updatedCards = cards.map(card => {
-              if (card.id === activeCard.id) {
-                return {
-                  ...card,
-                  list_id: overList.id,
-                  position: listCards.length,
-                };
-              }
-              return card;
-            });
-            setCards(updatedCards);
-            return;
-          }
-
-          const overCard = cards.find(card => card.id === over.id);
-          if (overCard && activeCard.list_id !== overCard.list_id) {
-            const updatedCards = cards.map(card => {
-              if (card.id === activeCard.id) {
-                return {
-                  ...card,
-                  list_id: overCard.list_id,
-                  position: overCard.position,
-                };
-              }
-              return card;
-            });
-            setCards(updatedCards);
-          }
-        }}
-        onDragEnd={async (event) => {
-          const { active, over } = event;
-          if (!over) return;
-
-          const activeCard = cards.find(card => card.id === active.id) as Card;
-          if (!activeCard) return;
-
-          try {
-            let newListId = activeCard.list_id;
-            let newPosition = activeCard.position;
-
-            const overList = lists.find(list => list.id === over.id);
-            const overCard = cards.find(card => card.id === over.id);
-
-            if (overList) {
-              newListId = overList.id;
-              const listCards = cards.filter(card => card.list_id === overList.id);
-              newPosition = listCards.length;
-            } else if (overCard) {
-              newListId = overCard.list_id;
-              newPosition = overCard.position;
-            }
-
-            await supabase
-              .from('cards')
-              .update({ 
-                list_id: newListId,
-                position: newPosition
-              })
-              .eq('id', activeCard.id);
-
-            toast({
-              title: "Card moved",
-              description: "Card has been moved successfully.",
-            });
-          } catch (error) {
-            console.error('Error moving card:', error);
-            toast({
-              title: "Error moving card",
-              description: error instanceof Error ? error.message : "An error occurred",
-              variant: "destructive",
-            });
-          }
-
-          setActiveCard(null);
-        }}
+        onDragStart={handleDragStart}
+        onDragOver={(event) => handleDragOver(event, lists)}
+        onDragEnd={handleDragEnd}
         activeCard={activeCard}
       />
     </>
