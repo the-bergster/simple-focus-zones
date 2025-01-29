@@ -47,7 +47,7 @@ export const ListsContainer = ({
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto min-h-[calc(100vh-8rem)] items-start fade-scrollbar pt-1">
+      <div className="flex gap-6 overflow-x-auto min-h-[calc(100vh-8rem)] items-start fade-scrollbar">
         {lists.map((list, index) => (
           <DroppableList
             key={list.id}
