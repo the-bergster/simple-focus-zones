@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MoreHorizontal, Trash2, Focus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,11 @@ export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) =
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [localIsFocused, setLocalIsFocused] = useState(isFocused);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setLocalIsFocused(isFocused);
+  }, [isFocused]);
 
   const handleAction = async (action: 'delete' | 'focus') => {
     try {
@@ -44,6 +49,22 @@ export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) =
           title: newFocusState ? "List focused" : "List unfocused",
           description: newFocusState ? "List has been focused." : "List has been unfocused.",
         });
+
+        // Fetch the updated state from the server to ensure consistency
+        const { data: updatedList, error: fetchError } = await supabase
+          .from('lists')
+          .select('is_focused')
+          .eq('id', listId)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching updated focus state:', fetchError);
+          return;
+        }
+
+        if (updatedList) {
+          setLocalIsFocused(updatedList.is_focused);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
