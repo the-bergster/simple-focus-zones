@@ -296,6 +296,8 @@ const FocusZone = () => {
   useEffect(() => {
     if (!id) return;
 
+    console.log('Setting up real-time subscription for focus zone:', id);
+    
     const channel = supabase
       .channel('lists-focus-changes')
       .on(
@@ -308,21 +310,31 @@ const FocusZone = () => {
         },
         async (payload) => {
           console.log('Received real-time update:', payload);
+          
+          // Fetch all lists to ensure we have the complete, updated state
           const { data: updatedLists, error } = await supabase
             .from('lists')
             .select('*')
             .eq('focus_zone_id', id)
             .order('position');
           
-          if (!error && updatedLists) {
+          if (error) {
+            console.error('Error fetching updated lists:', error);
+            return;
+          }
+
+          if (updatedLists) {
             console.log('Setting updated lists:', updatedLists);
             setLists(updatedLists);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
   }, [id, setLists]);

@@ -19,30 +19,30 @@ interface ListActionsProps {
 export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) => {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [localIsFocused, setLocalIsFocused] = useState(isFocused);
 
   const handleAction = async (action: 'delete' | 'focus') => {
     try {
       if (action === 'delete') {
         onDelete();
       } else if (action === 'focus') {
+        // Update local state immediately for better UX
+        const newFocusState = !localIsFocused;
+        setLocalIsFocused(newFocusState);
+        
         const { error } = await supabase.rpc('toggle_list_focus', {
           list_id_param: listId
         });
 
-        if (error) throw error;
-
-        // Fetch the updated list to get the new focus state
-        const { data: updatedList, error: fetchError } = await supabase
-          .from('lists')
-          .select('is_focused')
-          .eq('id', listId)
-          .single();
-
-        if (fetchError) throw fetchError;
+        if (error) {
+          // Revert local state if there's an error
+          setLocalIsFocused(!newFocusState);
+          throw error;
+        }
 
         toast({
-          title: updatedList.is_focused ? "List focused" : "List unfocused",
-          description: updatedList.is_focused ? "List has been focused." : "List has been unfocused.",
+          title: newFocusState ? "List focused" : "List unfocused",
+          description: newFocusState ? "List has been focused." : "List has been unfocused.",
         });
       }
     } catch (error) {
@@ -74,7 +74,7 @@ export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) =
           className="cursor-pointer"
         >
           <Focus className="mr-2 h-4 w-4" />
-          <span>{isFocused ? 'Unfocus' : 'Focus'}</span>
+          <span>{localIsFocused ? 'Unfocus' : 'Focus'}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleAction('delete')}
