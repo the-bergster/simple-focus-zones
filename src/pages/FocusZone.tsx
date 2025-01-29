@@ -268,39 +268,46 @@ const FocusZone = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-[#f0f2f5]">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5]">
-      <div className="fixed top-0 left-0 right-0 bg-white border-b z-10 px-8 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{focusZone?.title}</h1>
-              {focusZone?.description && (
-                <p className="text-sm text-muted-foreground">{focusZone.description}</p>
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
+        <div className="max-w-7xl mx-auto px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/dashboard')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{focusZone?.title}</h1>
+                {focusZone?.description && (
+                  <p className="text-sm text-muted-foreground">{focusZone.description}</p>
+                )}
+              </div>
             </div>
+            
+            <Button 
+              onClick={() => {
+                setEditingList(null);
+                setIsListDialogOpen(true);
+              }} 
+              size="sm"
+              className="bg-black text-white hover:bg-black/90"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add List
+            </Button>
           </div>
-          
-          <Button 
-            onClick={() => {
-              setEditingList(null);
-              setIsListDialogOpen(true);
-            }} 
-            size="sm"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add List
-          </Button>
         </div>
       </div>
 
@@ -326,7 +333,7 @@ const FocusZone = () => {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
+            <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)] items-start">
               {lists.map((list) => (
                 <DroppableList
                   key={list.id}
@@ -345,10 +352,15 @@ const FocusZone = () => {
               ))}
               {lists.length === 0 && (
                 <div className="flex items-center justify-center w-full">
-                  <Card className="w-[300px]">
+                  <Card className="w-[320px] bg-white/80 backdrop-blur-xl border border-white/20">
                     <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
                       <CardDescription>No lists yet</CardDescription>
-                      <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
+                      <Button 
+                        onClick={() => setIsListDialogOpen(true)} 
+                        variant="secondary" 
+                        size="sm"
+                        className="bg-black text-white hover:bg-black/90"
+                      >
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Create Your First List
                       </Button>
@@ -359,7 +371,7 @@ const FocusZone = () => {
             </div>
             <DragOverlay>
               {activeCard ? (
-                <Card className="bg-white border shadow-lg w-[280px]">
+                <Card className="w-[300px] bg-white shadow-lg rounded-xl border border-white/20">
                   <CardContent className="p-3">
                     <h3 className="text-sm font-medium">{activeCard.title}</h3>
                     {activeCard.description && (

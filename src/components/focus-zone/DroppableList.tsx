@@ -49,16 +49,16 @@ export const DroppableList = ({
   return (
     <div 
       ref={setNodeRef}
-      className="flex-none w-[300px]"
+      className="flex-none w-[320px]"
     >
-      <div className="bg-white rounded-lg p-4 shadow-md min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-medium text-sm">{list.title}</h3>
-          <div className="flex gap-1">
+          <h3 className="font-medium text-sm tracking-tight">{list.title}</h3>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
               onClick={() => onEditList(list)}
             >
               <Edit className="h-4 w-4" />
@@ -66,7 +66,7 @@ export const DroppableList = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
+              className="h-8 w-8 text-destructive/50 hover:text-destructive"
               onClick={() => onDeleteList(list.id)}
             >
               <Trash className="h-4 w-4" />
@@ -86,11 +86,11 @@ export const DroppableList = ({
           </SortableContext>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            className="w-full justify-start text-muted-foreground hover:text-foreground group"
             size="sm"
             onClick={() => onAddCard(list.id)}
           >
-            <PlusCircle className="mr-2 h-4 w-4" />
+            <PlusCircle className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
             Add a card
           </Button>
         </div>
