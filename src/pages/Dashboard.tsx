@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,6 +131,7 @@ const Dashboard = () => {
       
       setFocusZones([newZone, ...focusZones]);
       setIsDialogOpen(false);
+      form.reset();
       toast({
         title: "Focus Zone created",
         description: "Your new focus zone has been created successfully.",
@@ -166,6 +167,7 @@ const Dashboard = () => {
       
       setEditingZone(null);
       setIsDialogOpen(false);
+      form.reset();
       toast({
         title: "Focus Zone updated",
         description: "Your focus zone has been updated successfully.",
@@ -224,53 +226,62 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">Focus Zones</h1>
-          <Button onClick={handleSignOut} variant="outline">
-            Sign Out
-          </Button>
+          <div className="flex gap-4">
+            <Button onClick={() => setIsDialogOpen(true)} variant="default">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create Focus Zone
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              Sign Out
+            </Button>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingZone ? 'Edit Focus Zone' : 'Create New Focus Zone'}</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">
-                    {editingZone ? 'Update' : 'Create'}
-                  </Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingZone ? 'Edit Focus Zone' : 'Create New Focus Zone'}</DialogTitle>
+              <DialogDescription>
+                {editingZone 
+                  ? 'Update your focus zone details below.' 
+                  : 'Create a new focus zone to organize your tasks and ideas.'}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full">
+                  {editingZone ? 'Update' : 'Create'}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <WarningDialog
           open={deleteWarningOpen}
