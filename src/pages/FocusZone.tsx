@@ -76,17 +76,6 @@ const FocusZone = () => {
     })
   );
 
-  useEffect(() => {
-    fetchFocusZone();
-    fetchLists();
-  }, [id]);
-
-  useEffect(() => {
-    if (lists.length > 0) {
-      fetchCards();
-    }
-  }, [lists]);
-
   const fetchFocusZone = async () => {
     try {
       const { data, error } = await supabase
@@ -343,35 +332,133 @@ const FocusZone = () => {
       let newPosition = activeCard.position;
 
       const overList = lists.find(list => list.id === over.id);
+      const overCard = cards.find(card => card.id === over.id);
+
       if (overList) {
+        // Dropping on a list
         newListId = overList.id;
         const listCards = cards.filter(card => card.list_id === overList.id);
         newPosition = listCards.length;
-      }
-
-      const overCard = cards.find(card => card.id === over.id);
-      if (overCard) {
+      } else if (overCard) {
+        // Dropping on another card
         newListId = overCard.list_id;
-        newPosition = overCard.position;
+        
+        if (activeCard.list_id === overCard.list_id) {
+          // Reordering within the same list
+          const listCards = cards
+            .filter(card => card.list_id === overCard.list_id)
+            .sort((a, b) => a.position - b.position);
+
+          const oldIndex = listCards.findIndex(card => card.id === activeCard.id);
+          const newIndex = listCards.findIndex(card => card.id === overCard.id);
+
+          // Update positions for all affected cards
+          const updates = listCards.map((card, index) => {
+            if (oldIndex < newIndex) {
+              // Moving down
+              if (index >= oldIndex && index <= newIndex) {
+                const newPos = index === newIndex ? oldIndex : index - 1;
+                return supabase
+                  .from('cards')
+                  .update({ position: newPos })
+                  .eq('id', card.id);
+              }
+            } else {
+              // Moving up
+              if (index >= newIndex && index <= oldIndex) {
+                const newPos = index === newIndex ? oldIndex : index + 1;
+                return supabase
+                  .from('cards')
+                  .update({ position: newPos })
+                  .eq('id', card.id);
+              }
+            }
+            return null;
+          }).filter(Boolean);
+
+          await Promise.all(updates);
+          
+          // Update local state
+          setCards(prevCards => {
+            const newCards = [...prevCards];
+            if (oldIndex < newIndex) {
+              // Moving down
+              newCards.forEach(card => {
+                if (card.list_id === overCard.list_id) {
+                  if (card.id === activeCard.id) {
+                    card.position = newIndex;
+                  } else if (card.position > oldIndex && card.position <= newIndex) {
+                    card.position--;
+                  }
+                }
+              });
+            } else {
+              // Moving up
+              newCards.forEach(card => {
+                if (card.list_id === overCard.list_id) {
+                  if (card.id === activeCard.id) {
+                    card.position = newIndex;
+                  } else if (card.position >= newIndex && card.position < oldIndex) {
+                    card.position++;
+                  }
+                }
+              });
+            }
+            return newCards;
+          });
+
+          toast({
+            title: "Card reordered",
+            description: "Card position has been updated.",
+          });
+          
+          setActiveCard(null);
+          setActiveListId(null);
+          return;
+        } else {
+          // Moving to a different list
+          newPosition = overCard.position;
+          
+          // Shift cards in the target list
+          const targetListCards = cards
+            .filter(card => card.list_id === overCard.list_id)
+            .sort((a, b) => a.position - b.position);
+
+          const updates = targetListCards.map((card, index) => {
+            if (index >= newPosition) {
+              return supabase
+                .from('cards')
+                .update({ position: index + 1 })
+                .eq('id', card.id);
+            }
+            return null;
+          }).filter(Boolean);
+
+          updates.push(
+            supabase
+              .from('cards')
+              .update({ list_id: newListId, position: newPosition })
+              .eq('id', activeCard.id)
+          );
+
+          await Promise.all(updates);
+
+          // Update local state
+          setCards(prevCards => {
+            const newCards = [...prevCards];
+            newCards.forEach(card => {
+              if (card.list_id === newListId && card.position >= newPosition) {
+                card.position++;
+              }
+              if (card.id === activeCard.id) {
+                card.list_id = newListId;
+                card.position = newPosition;
+              }
+            });
+            return newCards;
+          });
+        }
       }
-
-      const { error } = await supabase
-        .from('cards')
-        .update({
-          list_id: newListId,
-          position: newPosition,
-        })
-        .eq('id', activeCard.id);
-
-      if (error) throw error;
-
-      setCards(prevCards =>
-        prevCards.map(card =>
-          card.id === activeCard.id
-            ? { ...card, list_id: newListId, position: newPosition }
-            : card
-        )
-      );
 
       toast({
         title: "Card moved",
@@ -440,63 +527,57 @@ const FocusZone = () => {
         onSubmit={createCard}
       />
 
-      {loading ? (
-        <div className="flex justify-center items-center h-screen">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      ) : (
-        <div className="pt-24 px-8 pb-8">
-          <div className="max-w-full mx-auto">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCorners}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
-                {lists.map((list) => (
-                  <DroppableList
-                    key={list.id}
-                    list={list}
-                    cards={cards.filter(card => card.list_id === list.id)}
-                    onEditList={setEditingList}
-                    onDeleteList={deleteList}
-                    onAddCard={setActiveListId}
-                  />
-                ))}
-                {lists.length === 0 && (
-                  <div className="flex items-center justify-center w-full">
-                    <Card className="w-[300px]">
-                      <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
-                        <CardDescription>No lists yet</CardDescription>
-                        <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Create Your First List
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </div>
-              <DragOverlay>
-                {activeCard ? (
-                  <Card className="bg-white border shadow-lg w-[280px]">
-                    <CardContent className="p-3">
-                      <h3 className="text-sm font-medium">{activeCard.title}</h3>
-                      {activeCard.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {activeCard.description}
-                        </p>
-                      )}
+      <div className="pt-24 px-8 pb-8">
+        <div className="max-w-full mx-auto">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
+              {lists.map((list) => (
+                <DroppableList
+                  key={list.id}
+                  list={list}
+                  cards={cards.filter(card => card.list_id === list.id)}
+                  onEditList={setEditingList}
+                  onDeleteList={deleteList}
+                  onAddCard={setActiveListId}
+                />
+              ))}
+              {lists.length === 0 && (
+                <div className="flex items-center justify-center w-full">
+                  <Card className="w-[300px]">
+                    <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
+                      <CardDescription>No lists yet</CardDescription>
+                      <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Your First List
+                      </Button>
                     </CardContent>
                   </Card>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
-          </div>
+                </div>
+              )}
+            </div>
+            <DragOverlay>
+              {activeCard ? (
+                <Card className="bg-white border shadow-lg w-[280px]">
+                  <CardContent className="p-3">
+                    <h3 className="text-sm font-medium">{activeCard.title}</h3>
+                    {activeCard.description && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {activeCard.description}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
-      )}
+      </div>
     </div>
   );
 };
