@@ -1,6 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Card {
   id: string;
@@ -33,9 +32,9 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : undefined,
   };
 
   return (
@@ -47,13 +46,13 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
     >
       <Card className="bg-neutral-50 shadow-[0_2px_12px_rgb(0,0,0,0.02)] hover:shadow-[0_2px_12px_rgb(0,0,0,0.04)] rounded-xl p-3 cursor-move mb-2 border border-neutral-100 group transition-all duration-200">
         <CardHeader className="p-0">
-          <CardTitle className="text-sm font-medium text-slate-700">{card.title}</CardTitle>
-          {card.description && (
-            <CardDescription className="text-xs mt-1 text-slate-400">
-              {card.description}
-            </CardDescription>
-          )}
+          <CardTitle className="text-sm font-medium text-neutral-700">{card.title}</CardTitle>
         </CardHeader>
+        {card.description && (
+          <CardContent className="p-0 pt-2">
+            <p className="text-xs text-neutral-500">{card.description}</p>
+          </CardContent>
+        )}
       </Card>
     </div>
   );
