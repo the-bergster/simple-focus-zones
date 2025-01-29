@@ -3,7 +3,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Card, List } from '@/types/focus-zone';
 
-export const useDragAndDrop = (cards: Card[], setCards: (cards: Card[]) => void) => {
+export const useDragAndDrop = (
+  cards: Card[], 
+  lists: List[],
+  setCards: (cards: Card[]) => void
+) => {
   const { toast } = useToast();
   const [activeCard, setActiveCard] = useState<Card | null>(null);
 

@@ -43,7 +43,7 @@ export const FocusZoneContent = ({
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-  } = useDragAndDrop(cards, setCards);
+  } = useDragAndDrop(cards, lists, setCards);
 
   const handleAddList = async () => {
     const defaultTitle = "New List";
