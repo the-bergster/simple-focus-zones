@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MouseEvent } from "react";
 
 interface ListActionsProps {
   listId: string;
@@ -18,7 +19,7 @@ interface ListActionsProps {
 export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) => {
   const { toast } = useToast();
 
-  const handleAction = (action: 'delete' | 'toggle-focus') => async (e: Event) => {
+  const handleAction = (action: 'delete' | 'toggle-focus') => async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 

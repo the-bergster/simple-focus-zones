@@ -25,6 +25,16 @@ import { useCardOperations } from '@/hooks/useCardOperations';
 import { useToast } from "@/hooks/use-toast";
 import { WarningDialog } from "@/components/ui/warning-dialog";
 
+interface List {
+  id: string;
+  title: string;
+  position: number;
+  focus_zone_id: string;
+  created_at: string;
+  updated_at: string;
+  is_focused: boolean;
+}
+
 const FocusZone = () => {
   const { id } = useParams();
   const navigate = useNavigate();
