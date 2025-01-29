@@ -4,33 +4,33 @@
  
 @layer base {
   :root {
-    --background: 220 25% 97%;
-    --foreground: 220 25% 15%;
+    --background: 230 25% 95%;
+    --foreground: 230 25% 15%;
  
-    --card: 220 25% 98%;
-    --card-foreground: 220 25% 15%;
+    --card: 230 25% 98%;
+    --card-foreground: 230 25% 15%;
  
-    --popover: 220 25% 98%;
-    --popover-foreground: 220 25% 15%;
+    --popover: 230 25% 98%;
+    --popover-foreground: 230 25% 15%;
  
-    --primary: 190 92% 45%;
-    --primary-foreground: 220 25% 98%;
+    --primary: 250 30% 60%;
+    --primary-foreground: 230 25% 98%;
  
-    --secondary: 280 84% 60%;
-    --secondary-foreground: 220 25% 98%;
+    --secondary: 230 25% 92%;
+    --secondary-foreground: 230 25% 15%;
  
-    --muted: 220 25% 90%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 230 25% 90%;
+    --muted-foreground: 230 15% 45%;
  
-    --accent: 320 84% 60%;
-    --accent-foreground: 220 25% 98%;
+    --accent: 250 30% 60%;
+    --accent-foreground: 230 25% 98%;
  
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 25% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 230 25% 98%;
  
-    --border: 220 25% 85%;
-    --input: 220 25% 85%;
-    --ring: 190 92% 45%;
+    --border: 230 25% 85%;
+    --input: 230 25% 85%;
+    --ring: 250 30% 60%;
  
     --radius: 0.75rem;
   }
@@ -54,7 +54,7 @@
 }
 
 .task-card {
-  @apply bg-card/90 backdrop-blur-sm rounded-xl p-3 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-border/20;
+  @apply bg-card/90 backdrop-blur-sm rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 border-2 border-border/20;
 }
 
 /* Custom scrollbar for Webkit browsers */
