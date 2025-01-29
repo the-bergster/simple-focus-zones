@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { MoreVertical, Pencil, Trash } from 'lucide-react';
+import { Pencil, Trash } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,9 +85,9 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <Pencil className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
