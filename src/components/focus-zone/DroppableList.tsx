@@ -50,7 +50,7 @@ export const DroppableList = ({
       ref={setNodeRef}
       className="flex-none w-[320px]"
     >
-      <div className="bg-card/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.16)] transition-all duration-300">
+      <div className="bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <ListTitle
             listId={list.id}
@@ -73,7 +73,7 @@ export const DroppableList = ({
           </SortableContext>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-secondary/50 group"
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 group"
             size="sm"
             onClick={() => onAddCard(list.id)}
           >

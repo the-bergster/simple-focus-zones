@@ -4,32 +4,32 @@
  
 @layer base {
   :root {
-    --background: 230 25% 12%;
-    --foreground: 210 20% 98%;
+    --background: 230 25% 95%;
+    --foreground: 230 25% 15%;
  
-    --card: 230 25% 14%;
-    --card-foreground: 210 20% 98%;
+    --card: 230 25% 98%;
+    --card-foreground: 230 25% 15%;
  
-    --popover: 230 25% 14%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 230 25% 98%;
+    --popover-foreground: 230 25% 15%;
  
     --primary: 250 30% 60%;
-    --primary-foreground: 210 20% 98%;
+    --primary-foreground: 230 25% 98%;
  
-    --secondary: 230 25% 18%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 230 25% 92%;
+    --secondary-foreground: 230 25% 15%;
  
-    --muted: 230 25% 18%;
-    --muted-foreground: 240 5% 75%;
+    --muted: 230 25% 90%;
+    --muted-foreground: 230 15% 45%;
  
     --accent: 250 30% 60%;
-    --accent-foreground: 210 20% 98%;
+    --accent-foreground: 230 25% 98%;
  
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 230 25% 98%;
  
-    --border: 230 25% 20%;
-    --input: 230 25% 20%;
+    --border: 230 25% 85%;
+    --input: 230 25% 85%;
     --ring: 250 30% 60%;
  
     --radius: 0.75rem;
@@ -50,11 +50,11 @@
 }
 
 .task-list {
-  @apply min-w-[300px] bg-card/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/20;
+  @apply min-w-[300px] bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/20;
 }
 
 .task-card {
-  @apply bg-secondary/90 backdrop-blur-sm rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 border border-border/10;
+  @apply bg-card/90 backdrop-blur-sm rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 border border-border/10;
 }
 
 /* Custom scrollbar for Webkit browsers */
@@ -70,13 +70,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/5 rounded-full;
+  @apply bg-foreground/5 rounded-full;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/10;
+  @apply bg-foreground/10;
 }
 
 /* Add fade out behavior for horizontal scrollbars */
