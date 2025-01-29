@@ -17,7 +17,6 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { supabase } from "@/integrations/supabase/client";
 import { DroppableList } from '@/components/focus-zone/DroppableList';
-import { ListDialog } from '@/components/focus-zone/ListDialog';
 import { CardDialog } from '@/components/focus-zone/CardDialog';
 import { useFocusZone } from '@/hooks/useFocusZone';
 import { useListOperations } from '@/hooks/useListOperations';
@@ -41,10 +40,7 @@ const FocusZone = () => {
   const {
     isListDialogOpen,
     setIsListDialogOpen,
-    editingList,
-    setEditingList,
     createList,
-    updateList,
     deleteList,
   } = useListOperations(id!, setLists);
 
@@ -313,10 +309,7 @@ const FocusZone = () => {
             </div>
             
             <Button 
-              onClick={() => {
-                setEditingList(null);
-                setIsListDialogOpen(true);
-              }} 
+              onClick={() => setIsListDialogOpen(true)} 
               size="sm"
               className="bg-black text-white hover:bg-black/90"
             >
@@ -326,13 +319,6 @@ const FocusZone = () => {
           </div>
         </div>
       </div>
-
-      <ListDialog
-        open={isListDialogOpen}
-        onOpenChange={setIsListDialogOpen}
-        editingList={editingList}
-        onSubmit={editingList ? updateList : createList}
-      />
 
       <CardDialog
         open={isCardDialogOpen}
@@ -355,10 +341,6 @@ const FocusZone = () => {
                   key={list.id}
                   list={list}
                   cards={cards.filter(card => card.list_id === list.id)}
-                  onEditList={(list) => {
-                    setEditingList(list);
-                    setIsListDialogOpen(true);
-                  }}
                   onDeleteList={deleteList}
                   onAddCard={(listId) => {
                     setActiveListId(listId);
