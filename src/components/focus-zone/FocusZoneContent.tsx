@@ -111,40 +111,34 @@ export const FocusZoneContent = ({
 
           const overList = lists.find(list => list.id === over.id);
           if (overList) {
-            setCards(prevCards => {
-              const newCards = [...prevCards];
-              const activeIndex = newCards.findIndex(card => card.id === activeCard.id);
-              
-              if (activeIndex !== -1) {
-                const listCards = newCards.filter(card => card.list_id === overList.id);
-                newCards[activeIndex] = {
-                  ...newCards[activeIndex],
+            const listCards = cards.filter(card => card.list_id === overList.id);
+            const updatedCards = cards.map(card => {
+              if (card.id === activeCard.id) {
+                return {
+                  ...card,
                   list_id: overList.id,
                   position: listCards.length,
                 };
               }
-              
-              return newCards;
+              return card;
             });
+            setCards(updatedCards);
             return;
           }
 
           const overCard = cards.find(card => card.id === over.id);
           if (overCard && activeCard.list_id !== overCard.list_id) {
-            setCards(prevCards => {
-              const newCards = [...prevCards];
-              const activeIndex = newCards.findIndex(card => card.id === activeCard.id);
-              
-              if (activeIndex !== -1) {
-                newCards[activeIndex] = {
-                  ...newCards[activeIndex],
+            const updatedCards = cards.map(card => {
+              if (card.id === activeCard.id) {
+                return {
+                  ...card,
                   list_id: overCard.list_id,
                   position: overCard.position,
                 };
               }
-              
-              return newCards;
+              return card;
             });
+            setCards(updatedCards);
           }
         }}
         onDragEnd={async (event) => {
