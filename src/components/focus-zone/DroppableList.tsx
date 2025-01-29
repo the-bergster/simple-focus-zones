@@ -27,7 +27,6 @@ interface Card {
 interface DroppableListProps {
   list: List;
   cards: Card[];
-  onEditList: (list: List) => void;
   onDeleteList: (listId: string) => void;
   onAddCard: (listId: string) => void;
 }
@@ -35,7 +34,6 @@ interface DroppableListProps {
 export const DroppableList = ({ 
   list, 
   cards,
-  onEditList,
   onDeleteList,
   onAddCard,
 }: DroppableListProps) => {
@@ -47,14 +45,6 @@ export const DroppableList = ({
     },
   });
 
-  const handleTitleUpdate = (newTitle: string) => {
-    // This is just for local state update, not for opening the modal
-    onEditList({
-      ...list,
-      title: newTitle
-    });
-  };
-
   return (
     <div 
       ref={setNodeRef}
@@ -65,10 +55,8 @@ export const DroppableList = ({
           <ListTitle
             listId={list.id}
             initialTitle={list.title}
-            onTitleUpdate={handleTitleUpdate}
           />
           <ListActions
-            onEdit={() => onEditList(list)}
             onDelete={() => onDeleteList(list.id)}
           />
         </div>

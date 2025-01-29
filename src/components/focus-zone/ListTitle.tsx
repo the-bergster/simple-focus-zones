@@ -6,10 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 interface ListTitleProps {
   listId: string;
   initialTitle: string;
-  onTitleUpdate: (title: string) => void;
 }
 
-export const ListTitle = ({ listId, initialTitle, onTitleUpdate }: ListTitleProps) => {
+export const ListTitle = ({ listId, initialTitle }: ListTitleProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(initialTitle);
   const { toast } = useToast();
@@ -40,7 +39,6 @@ export const ListTitle = ({ listId, initialTitle, onTitleUpdate }: ListTitleProp
 
         if (error) throw error;
         
-        onTitleUpdate(editedTitle.trim());
         toast({
           title: "List updated",
           description: "List title has been updated successfully.",
@@ -97,7 +95,7 @@ export const ListTitle = ({ listId, initialTitle, onTitleUpdate }: ListTitleProp
         setIsEditing(true);
       }}
     >
-      {initialTitle}
+      {editedTitle}
     </h3>
   );
 };
