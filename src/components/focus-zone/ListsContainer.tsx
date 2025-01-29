@@ -58,13 +58,15 @@ export const ListsContainer = ({
             isFirstList={index === 0}
           />
         ))}
-        <button
-          onClick={onAddList}
-          className="flex-none w-[320px] h-[100px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
-        >
-          <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
-          <span className="text-sm font-medium">Add another list</span>
-        </button>
+        <div className="flex-none">
+          <button
+            onClick={onAddList}
+            className="w-[320px] h-[156px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
+          >
+            <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
+            <span className="text-sm font-medium">Add another list</span>
+          </button>
+        </div>
       </div>
       <DragOverlay>
         {activeCard ? (
