@@ -21,6 +21,7 @@ interface DraggableCardProps {
 export const DraggableCard = ({ card }: DraggableCardProps) => {
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   
   const {
     attributes,
@@ -63,6 +64,11 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
     }
   };
 
+  const handleEdit = () => {
+    setIsEditDialogOpen(true);
+    setDropdownOpen(false);
+  };
+
   return (
     <>
       <CardOperationsDialog
@@ -81,7 +87,7 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
         <Card className="bg-card/90 shadow-sm hover:shadow-md rounded-xl p-3 cursor-move border border-foreground/15 group transition-all duration-200">
           <CardHeader className="p-0 flex flex-row items-start justify-between">
             <CardTitle className="text-sm font-medium text-foreground">{card.title}</CardTitle>
-            <DropdownMenu>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -91,7 +97,7 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                <DropdownMenuItem onClick={handleEdit}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
