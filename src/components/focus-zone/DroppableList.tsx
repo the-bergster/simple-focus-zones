@@ -48,6 +48,7 @@ export const DroppableList = ({
   });
 
   const handleTitleUpdate = (newTitle: string) => {
+    // This is just for local state update, not for opening the modal
     onEditList({
       ...list,
       title: newTitle
