@@ -50,7 +50,7 @@ export const DroppableList = ({
       ref={setNodeRef}
       className="flex-none w-[320px]"
     >
-      <div className="bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border-2 border-border/30 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300">
+      <div className="bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-border/30 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <ListTitle
             listId={list.id}
