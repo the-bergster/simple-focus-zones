@@ -41,6 +41,7 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
       
+      // Update the lists state with the new list
       const updatedLists = [...(lists || []), newList] as List[];
       onListsChange(updatedLists);
       
@@ -62,23 +63,27 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
     if (!editingList) return;
 
     try {
-      const { error } = await supabase
+      const { data: updatedList, error } = await supabase
         .from('lists')
         .update({
           title: data.title,
         })
-        .eq('id', editingList.id);
+        .eq('id', editingList.id)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      const updatedLists = (prevLists: List[]) => 
-        prevLists.map(list => 
-          list.id === editingList.id 
-            ? { ...list, title: data.title }
-            : list
-        ) as List[];
-      
-      onListsChange(updatedLists([]));
+      // Fetch all lists to ensure we have the latest state
+      const { data: lists } = await supabase
+        .from('lists')
+        .select('*')
+        .eq('focus_zone_id', focusZoneId)
+        .order('position');
+
+      if (lists) {
+        onListsChange(lists as List[]);
+      }
       
       setEditingList(null);
       setIsListDialogOpen(false);
@@ -108,10 +113,14 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
 
-      const updatedLists = (prevLists: List[]) => 
-        prevLists.filter(list => list.id !== listId) as List[];
-      
-      onListsChange(updatedLists([]));
+      // Fetch all remaining lists to ensure we have the latest state
+      const { data: remainingLists } = await supabase
+        .from('lists')
+        .select('*')
+        .eq('focus_zone_id', focusZoneId)
+        .order('position');
+
+      onListsChange(remainingLists as List[] || []);
       
       toast({
         title: "List deleted",
