@@ -334,7 +334,7 @@ const FocusZone = () => {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)] items-start">
+            <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)] items-start fade-scrollbar">
               {lists.map((list) => (
                 <DroppableList
                   key={list.id}

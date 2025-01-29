@@ -61,6 +61,8 @@
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
 }
 
 ::-webkit-scrollbar-track {
@@ -75,6 +77,32 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-black/20;
+}
+
+/* Add fade out behavior for horizontal scrollbars */
+.fade-scrollbar {
+  --scrollbar-timeout: 1500ms;
+}
+
+.fade-scrollbar::-webkit-scrollbar {
+  opacity: 0;
+}
+
+.fade-scrollbar:hover::-webkit-scrollbar,
+.fade-scrollbar:active::-webkit-scrollbar,
+.fade-scrollbar:focus::-webkit-scrollbar {
+  opacity: 1;
+}
+
+.fade-scrollbar::-webkit-scrollbar-thumb {
+  transition: opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.fade-scrollbar:hover::-webkit-scrollbar-thumb,
+.fade-scrollbar:active::-webkit-scrollbar-thumb,
+.fade-scrollbar:focus::-webkit-scrollbar-thumb {
+  opacity: 1;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
