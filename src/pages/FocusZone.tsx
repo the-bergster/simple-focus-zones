@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { PlusCircle, Loader2, Edit, Trash, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -35,20 +36,36 @@ const listFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
 });
 
+const cardFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+});
+
 const FocusZone = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [focusZone, setFocusZone] = useState<any>(null);
   const [lists, setLists] = useState<List[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isListDialogOpen, setIsListDialogOpen] = useState(false);
+  const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [editingList, setEditingList] = useState<List | null>(null);
+  const [activeListId, setActiveListId] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof listFormSchema>>({
+  const listForm = useForm<z.infer<typeof listFormSchema>>({
     resolver: zodResolver(listFormSchema),
     defaultValues: {
       title: "",
+    },
+  });
+
+  const cardForm = useForm<z.infer<typeof cardFormSchema>>({
+    resolver: zodResolver(cardFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
     },
   });
 
@@ -58,16 +75,22 @@ const FocusZone = () => {
   }, [id]);
 
   useEffect(() => {
+    if (lists.length > 0) {
+      fetchCards();
+    }
+  }, [lists]);
+
+  useEffect(() => {
     if (editingList) {
-      form.reset({
+      listForm.reset({
         title: editingList.title,
       });
     } else {
-      form.reset({
+      listForm.reset({
         title: "",
       });
     }
-  }, [editingList, form]);
+  }, [editingList, listForm]);
 
   const fetchFocusZone = async () => {
     try {
@@ -118,6 +141,26 @@ const FocusZone = () => {
     }
   };
 
+  const fetchCards = async () => {
+    try {
+      const listIds = lists.map(list => list.id);
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .in('list_id', listIds)
+        .order('position');
+
+      if (error) throw error;
+      setCards(data || []);
+    } catch (error) {
+      toast({
+        title: "Error fetching cards",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
   const createList = async (data: z.infer<typeof listFormSchema>) => {
     try {
       const newPosition = lists.length;
@@ -134,7 +177,7 @@ const FocusZone = () => {
       if (error) throw error;
       
       setLists([...lists, newList]);
-      setIsDialogOpen(false);
+      setIsListDialogOpen(false);
       toast({
         title: "List created",
         description: "Your new list has been created successfully.",
@@ -142,6 +185,42 @@ const FocusZone = () => {
     } catch (error) {
       toast({
         title: "Error creating list",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const createCard = async (data: z.infer<typeof cardFormSchema>) => {
+    if (!activeListId) return;
+
+    try {
+      const listCards = cards.filter(card => card.list_id === activeListId);
+      const newPosition = listCards.length;
+      
+      const { data: newCard, error } = await supabase
+        .from('cards')
+        .insert({
+          title: data.title,
+          description: data.description || null,
+          position: newPosition,
+          list_id: activeListId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCards([...cards, newCard]);
+      setIsCardDialogOpen(false);
+      cardForm.reset();
+      toast({
+        title: "Card created",
+        description: "Your new card has been created successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error creating card",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
@@ -168,7 +247,7 @@ const FocusZone = () => {
       ));
       
       setEditingList(null);
-      setIsDialogOpen(false);
+      setIsListDialogOpen(false);
       toast({
         title: "List updated",
         description: "Your list has been updated successfully.",
@@ -183,7 +262,7 @@ const FocusZone = () => {
   };
 
   const deleteList = async (listId: string) => {
-    if (!confirm("Are you sure you want to delete this list? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to delete this list and all its cards? This action cannot be undone.")) {
       return;
     }
 
@@ -196,6 +275,7 @@ const FocusZone = () => {
       if (error) throw error;
 
       setLists(lists.filter(list => list.id !== listId));
+      setCards(cards.filter(card => card.list_id !== listId));
       toast({
         title: "List deleted",
         description: "Your list has been deleted successfully.",
@@ -209,12 +289,16 @@ const FocusZone = () => {
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof listFormSchema>) => {
+  const onListSubmit = async (data: z.infer<typeof listFormSchema>) => {
     if (editingList) {
       await updateList(data);
     } else {
       await createList(data);
     }
+  };
+
+  const onCardSubmit = async (data: z.infer<typeof cardFormSchema>) => {
+    await createCard(data);
   };
 
   if (!focusZone && loading) {
@@ -241,7 +325,7 @@ const FocusZone = () => {
               )}
             </div>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingList(null)} size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -252,10 +336,10 @@ const FocusZone = () => {
               <DialogHeader>
                 <DialogTitle>{editingList ? 'Edit List' : 'Create New List'}</DialogTitle>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <Form {...listForm}>
+                <form onSubmit={listForm.handleSubmit(onListSubmit)} className="space-y-4">
                   <FormField
-                    control={form.control}
+                    control={listForm.control}
                     name="title"
                     render={({ field }) => (
                       <FormItem>
@@ -277,6 +361,50 @@ const FocusZone = () => {
         </div>
       </div>
 
+      <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Card</DialogTitle>
+            <DialogDescription>
+              Create a new card for your list.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...cardForm}>
+            <form onSubmit={cardForm.handleSubmit(onCardSubmit)} className="space-y-4">
+              <FormField
+                control={cardForm.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={cardForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (optional)</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Create Card
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       {loading ? (
         <div className="flex justify-center items-center h-screen">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -297,7 +425,7 @@ const FocusZone = () => {
                           className="h-8 w-8"
                           onClick={() => {
                             setEditingList(list);
-                            setIsDialogOpen(true);
+                            setIsListDialogOpen(true);
                           }}
                         >
                           <Edit className="h-4 w-4" />
@@ -313,11 +441,29 @@ const FocusZone = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {/* Cards will be implemented here */}
+                      {cards
+                        .filter(card => card.list_id === list.id)
+                        .sort((a, b) => a.position - b.position)
+                        .map(card => (
+                          <Card key={card.id} className="bg-white">
+                            <CardHeader className="p-3">
+                              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                              {card.description && (
+                                <CardDescription className="text-xs">
+                                  {card.description}
+                                </CardDescription>
+                              )}
+                            </CardHeader>
+                          </Card>
+                        ))}
                       <Button
                         variant="ghost"
                         className="w-full justify-start text-muted-foreground hover:text-foreground"
                         size="sm"
+                        onClick={() => {
+                          setActiveListId(list.id);
+                          setIsCardDialogOpen(true);
+                        }}
                       >
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add a card
@@ -331,7 +477,7 @@ const FocusZone = () => {
                   <Card className="w-[300px]">
                     <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
                       <CardDescription>No lists yet</CardDescription>
-                      <Button onClick={() => setIsDialogOpen(true)} variant="secondary" size="sm">
+                      <Button onClick={() => setIsListDialogOpen(true)} variant="secondary" size="sm">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Create Your First List
                       </Button>
