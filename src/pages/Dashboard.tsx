@@ -225,7 +225,14 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Focus Zones</h1>
+          <div className="flex items-center gap-4">
+            <img 
+              src="https://media.ceros.com/simonberg/images/2025/01/29/59048511c0a9813e16f2a9713a2c49a9/logo.png" 
+              alt="FocusFlow Logo" 
+              className="h-8"
+            />
+            <h1 className="text-3xl font-bold text-foreground">Focus Zones</h1>
+          </div>
           <div className="flex gap-4">
             <Button onClick={() => setIsDialogOpen(true)} variant="default">
               <PlusCircle className="mr-2 h-4 w-4" />

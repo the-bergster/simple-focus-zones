@@ -52,71 +52,80 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-card shadow-lg border-border/20">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">
-            Welcome to FocusFlow
-          </CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
-            {isSignUp ? "Create an account to get started" : "Sign in to your account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center">
+          <img 
+            src="https://media.ceros.com/simonberg/images/2025/01/29/59048511c0a9813e16f2a9713a2c49a9/logo.png" 
+            alt="FocusFlow Logo" 
+            className="h-12 mb-6"
+          />
+        </div>
+        <Card className="w-full bg-card shadow-lg border-border/20">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">
+              Welcome to FocusFlow
+            </CardTitle>
+            <CardDescription className="text-center text-muted-foreground">
+              {isSignUp ? "Create an account to get started" : "Sign in to your account"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="bg-secondary border-border/20"
+                    required={isSignUp}
+                    minLength={3}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <Input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="bg-secondary border-border/20"
-                  required={isSignUp}
-                  minLength={3}
+                  required
                 />
               </div>
-            )}
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-secondary border-border/20"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-secondary border-border/20"
-                required
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90"
-              disabled={isLoading}
-            >
-              {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
-            </Button>
-            <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                className="text-primary hover:text-primary/90"
-                onClick={() => setIsSignUp(!isSignUp)}
+              <div className="space-y-2">
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-secondary border-border/20"
+                  required
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={isLoading}
               >
-                {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+                {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
               </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-primary hover:text-primary/90"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                >
+                  {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
