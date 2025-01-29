@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from '@supabase/supabase-js';
 
+// Initialize Supabase client
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  'https://e41069b3-beaf-41c9-b9bb-50bc64cb3e57.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImU0MTA2OWIzLWJlYWYtNDFjOS1iOWJiLTUwYmM2NGNiM2U1NyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzA5NzQ4NTY5LCJleHAiOjIwMjUzMjQ1Njl9.Kj7vqHoYKKW-qnzNwCQnUqKaHGVRZ7YI6K_dEacFD6E'
 );
 
 const Login = () => {
