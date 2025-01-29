@@ -48,7 +48,9 @@ export const useCardOperations = (onCardsChange: (cards: Card[]) => void) => {
 
       if (error) throw error;
 
-      onCardsChange(prevCards => [...prevCards, newCard]);
+      const updatedCards = (prevCards: Card[]) => [...prevCards, newCard as Card];
+      onCardsChange(updatedCards([]));
+      
       setIsCardDialogOpen(false);
       toast({
         title: "Card created",

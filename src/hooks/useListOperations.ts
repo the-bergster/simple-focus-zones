@@ -41,7 +41,9 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
       
-      onListsChange([...(lists || []), newList]);
+      const updatedLists = [...(lists || []), newList] as List[];
+      onListsChange(updatedLists);
+      
       setIsListDialogOpen(false);
       toast({
         title: "List created",
@@ -69,13 +71,14 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
 
-      onListsChange(prevLists => 
+      const updatedLists = (prevLists: List[]) => 
         prevLists.map(list => 
           list.id === editingList.id 
             ? { ...list, title: data.title }
             : list
-        )
-      );
+        ) as List[];
+      
+      onListsChange(updatedLists([]));
       
       setEditingList(null);
       setIsListDialogOpen(false);
@@ -105,7 +108,11 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
 
-      onListsChange(prevLists => prevLists.filter(list => list.id !== listId));
+      const updatedLists = (prevLists: List[]) => 
+        prevLists.filter(list => list.id !== listId) as List[];
+      
+      onListsChange(updatedLists([]));
+      
       toast({
         title: "List deleted",
         description: "Your list has been deleted successfully.",
