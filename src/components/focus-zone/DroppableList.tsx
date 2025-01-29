@@ -80,10 +80,12 @@ export const DroppableList = ({
 
         if (error) throw error;
 
-        onEditList({
+        const updatedList = {
           ...list,
           title: editedTitle.trim()
-        });
+        };
+        
+        onEditList(updatedList);
 
         toast({
           title: "List updated",
