@@ -27,15 +27,11 @@ const Login = () => {
           options: {
             data: {
               username: username,
-            },
-            emailRedirectTo: `${window.location.origin}/login`
+            }
           }
         });
         if (error) throw error;
-        toast({
-          title: "Check your email",
-          description: "We've sent you a verification link.",
-        });
+        navigate('/');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
