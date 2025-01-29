@@ -11,6 +11,7 @@ interface FocusZone {
   title: string;
   description: string | null;
   created_at: string;
+  owner_id: string;
 }
 
 const Dashboard = () => {
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [focusZones, setFocusZones] = useState<FocusZone[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -25,6 +27,7 @@ const Dashboard = () => {
       if (!session) {
         navigate('/login');
       } else {
+        setUserId(session.user.id);
         fetchFocusZones();
       }
     };
@@ -65,12 +68,23 @@ const Dashboard = () => {
   };
 
   const createFocusZone = async () => {
+    if (!userId) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create a focus zone",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('focus_zones')
-        .insert([
-          { title: 'New Focus Zone', description: 'Click to edit this focus zone' }
-        ])
+        .insert({
+          title: 'New Focus Zone',
+          description: 'Click to edit this focus zone',
+          owner_id: userId
+        })
         .select()
         .single();
 
