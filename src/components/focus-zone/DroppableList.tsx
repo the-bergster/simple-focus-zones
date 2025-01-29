@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MoreHorizontal } from "lucide-react";
 import { DraggableCard } from "./DraggableCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +50,7 @@ export const DroppableList = ({
 }: DroppableListProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(list.title);
+  const { toast } = useToast();
   const { setNodeRef } = useSortable({
     id: list.id,
     data: {
@@ -56,18 +59,52 @@ export const DroppableList = ({
     },
   });
 
-  const handleTitleSubmit = () => {
-    if (editedTitle.trim() !== list.title) {
-      onEditList({
-        ...list,
-        title: editedTitle.trim()
+  const handleTitleSubmit = async () => {
+    if (editedTitle.trim() === '') {
+      toast({
+        title: "Invalid title",
+        description: "Title cannot be empty",
+        variant: "destructive",
       });
+      setEditedTitle(list.title);
+      setIsEditing(false);
+      return;
+    }
+
+    if (editedTitle.trim() !== list.title) {
+      try {
+        const { error } = await supabase
+          .from('lists')
+          .update({ title: editedTitle.trim() })
+          .eq('id', list.id);
+
+        if (error) throw error;
+
+        onEditList({
+          ...list,
+          title: editedTitle.trim()
+        });
+
+        toast({
+          title: "List updated",
+          description: "List title has been updated successfully.",
+        });
+      } catch (error) {
+        console.error('Error updating list:', error);
+        toast({
+          title: "Error updating list",
+          description: error instanceof Error ? error.message : "An error occurred",
+          variant: "destructive",
+        });
+        setEditedTitle(list.title);
+      }
     }
     setIsEditing(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleTitleSubmit();
     } else if (e.key === 'Escape') {
       setEditedTitle(list.title);
