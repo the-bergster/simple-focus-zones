@@ -59,7 +59,12 @@ export const DroppableList = ({
     },
   });
 
-  const handleTitleSubmit = async () => {
+  const handleTitleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (editedTitle.trim() === '') {
       toast({
         title: "Invalid title",
@@ -104,10 +109,10 @@ export const DroppableList = ({
     setIsEditing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.stopPropagation();
       handleTitleSubmit();
     } else if (e.key === 'Escape') {
       setEditedTitle(list.title);
@@ -129,14 +134,16 @@ export const DroppableList = ({
       <div className="bg-slate-100/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           {isEditing ? (
-            <Input
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              onBlur={handleTitleSubmit}
-              onKeyDown={handleKeyDown}
-              className="h-7 text-sm font-medium"
-              autoFocus
-            />
+            <form onSubmit={handleTitleSubmit} className="flex-1 mr-2">
+              <Input
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={handleTitleSubmit}
+                onKeyDown={handleKeyDown}
+                className="h-7 text-sm font-medium"
+                autoFocus
+              />
+            </form>
           ) : (
             <h3 
               className="font-medium text-sm tracking-tight text-slate-700 cursor-pointer hover:text-slate-900"
