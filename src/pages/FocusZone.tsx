@@ -293,17 +293,9 @@ const FocusZone = () => {
     setActiveListId(null);
   };
 
-  const AddListButton = () => (
-    <button
-      onClick={handleAddList}
-      className="flex-none w-[320px] h-[100px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
-    >
-      <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
-      <span className="text-sm font-medium">Add another list</span>
-    </button>
-  );
-
   useEffect(() => {
+    if (!id) return;
+
     const channel = supabase
       .channel('lists-focus-changes')
       .on(
@@ -315,7 +307,17 @@ const FocusZone = () => {
           filter: `focus_zone_id=eq.${id}`
         },
         async (payload) => {
-          await refetch();
+          console.log('Received real-time update:', payload);
+          const { data: updatedLists, error } = await supabase
+            .from('lists')
+            .select('*')
+            .eq('focus_zone_id', id)
+            .order('position');
+          
+          if (!error && updatedLists) {
+            console.log('Setting updated lists:', updatedLists);
+            setLists(updatedLists);
+          }
         }
       )
       .subscribe();
@@ -323,7 +325,7 @@ const FocusZone = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, refetch]);
+  }, [id, setLists]);
 
   if (loading) {
     return (
