@@ -47,7 +47,7 @@ export const ListsContainer = ({
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
-      <div className="flex gap-6 overflow-x-auto min-h-[calc(100vh-8rem)] items-start fade-scrollbar">
+      <div className="flex items-start gap-6 overflow-x-auto min-h-[calc(100vh-8rem)] fade-scrollbar">
         {lists.map((list, index) => (
           <DroppableList
             key={list.id}
@@ -58,15 +58,13 @@ export const ListsContainer = ({
             isFirstList={index === 0}
           />
         ))}
-        <div className="flex-none">
-          <button
-            onClick={onAddList}
-            className="w-[320px] h-[156px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
-          >
-            <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
-            <span className="text-sm font-medium">Add another list</span>
-          </button>
-        </div>
+        <button
+          onClick={onAddList}
+          className="flex-none w-[320px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group h-[156px]"
+        >
+          <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
+          <span className="text-sm font-medium">Add another list</span>
+        </button>
       </div>
       <DragOverlay>
         {activeCard ? (
