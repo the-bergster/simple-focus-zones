@@ -52,13 +52,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F2FCE2] p-4">
-      <Card className="w-full max-w-md bg-white shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md bg-card shadow-lg border-border/20">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center text-[#403E43]">
+          <CardTitle className="text-2xl text-center">
             Welcome to FocusFlow
           </CardTitle>
-          <CardDescription className="text-center text-[#8E9196]">
+          <CardDescription className="text-center text-muted-foreground">
             {isSignUp ? "Create an account to get started" : "Sign in to your account"}
           </CardDescription>
         </CardHeader>
@@ -71,7 +71,7 @@ const Login = () => {
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="border-[#C8C8C9]"
+                  className="bg-secondary border-border/20"
                   required={isSignUp}
                   minLength={3}
                 />
@@ -83,7 +83,7 @@ const Login = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-[#C8C8C9]"
+                className="bg-secondary border-border/20"
                 required
               />
             </div>
@@ -93,13 +93,13 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="border-[#C8C8C9]"
+                className="bg-secondary border-border/20"
                 required
               />
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-[#403E43] hover:bg-[#221F26]"
+              className="w-full bg-primary hover:bg-primary/90"
               disabled={isLoading}
             >
               {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
@@ -108,7 +108,7 @@ const Login = () => {
               <Button
                 type="button"
                 variant="link"
-                className="text-[#8E9196]"
+                className="text-primary hover:text-primary/90"
                 onClick={() => setIsSignUp(!isSignUp)}
               >
                 {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
