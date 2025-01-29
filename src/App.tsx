@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import FocusZone from "./pages/FocusZone";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,14 @@ const App = () => {
                 isAuthenticated === false ? 
                 <Navigate to="/login" replace /> : 
                 <Dashboard />
+              } 
+            />
+            <Route 
+              path="/focus-zone/:id" 
+              element={
+                isAuthenticated === false ? 
+                <Navigate to="/login" replace /> : 
+                <FocusZone />
               } 
             />
             <Route path="*" element={<NotFound />} />
