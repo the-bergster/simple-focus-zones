@@ -328,8 +328,8 @@ const FocusZone = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
-        <div className="max-w-[1800px] mx-auto w-full py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-[1800px] mx-auto w-full">
+          <div className="flex items-center justify-between py-4">
             <Button 
               variant="ghost" 
               onClick={() => navigate('/dashboard')}
@@ -374,7 +374,7 @@ const FocusZone = () => {
             onDragEnd={handleDragEnd}
           >
             <div className="flex gap-6 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)] items-start fade-scrollbar">
-              {lists.map((list) => (
+              {lists.map((list, index) => (
                 <DroppableList
                   key={list.id}
                   list={list}
@@ -384,9 +384,16 @@ const FocusZone = () => {
                     setActiveListId(listId);
                     setIsCardDialogOpen(true);
                   }}
+                  isFirstList={index === 0}
                 />
               ))}
-              <AddListButton />
+              <button
+                onClick={handleAddList}
+                className="flex-none w-[320px] h-[100px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
+              >
+                <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
+                <span className="text-sm font-medium">Add another list</span>
+              </button>
             </div>
             <DragOverlay>
               {activeCard ? (

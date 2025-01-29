@@ -30,6 +30,7 @@ interface DroppableListProps {
   cards: Card[];
   onDeleteList: (listId: string) => void;
   onAddCard: (listId: string) => void;
+  isFirstList?: boolean;
 }
 
 export const DroppableList = ({ 
@@ -37,6 +38,7 @@ export const DroppableList = ({
   cards,
   onDeleteList,
   onAddCard,
+  isFirstList = false,
 }: DroppableListProps) => {
   const { setNodeRef } = useSortable({
     id: list.id,
@@ -49,7 +51,7 @@ export const DroppableList = ({
   return (
     <div 
       ref={setNodeRef}
-      className="flex-none w-[320px]"
+      className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
     >
       <div className={`bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border ${list.is_focused ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border/30'} min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md transition-all duration-300`}>
         <div className="flex items-center justify-between mb-4">
