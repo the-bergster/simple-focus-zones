@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -289,36 +289,35 @@ const FocusZone = () => {
     );
   }
 
+  const AddListButton = () => (
+    <button
+      onClick={handleAddList}
+      className="flex-none w-[320px] h-[100px] bg-black/5 hover:bg-black/10 rounded-2xl flex items-center justify-center gap-2 text-black/50 hover:text-black/70 transition-all group"
+    >
+      <Plus className="h-5 w-5 transition-all group-hover:scale-110" />
+      <span className="text-sm font-medium">Add another list</span>
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
         <div className="max-w-7xl mx-auto px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/dashboard')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">{focusZone?.title}</h1>
-                {focusZone?.description && (
-                  <p className="text-sm text-muted-foreground">{focusZone.description}</p>
-                )}
-              </div>
-            </div>
-            
+          <div className="flex items-center gap-4">
             <Button 
-              onClick={handleAddList} 
-              size="sm"
-              className="bg-black text-white hover:bg-black/90"
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="text-muted-foreground hover:text-foreground"
             >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add List
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
             </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{focusZone?.title}</h1>
+              {focusZone?.description && (
+                <p className="text-sm text-muted-foreground">{focusZone.description}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -351,24 +350,7 @@ const FocusZone = () => {
                   }}
                 />
               ))}
-              {lists.length === 0 && (
-                <div className="flex items-center justify-center w-full">
-                  <Card className="w-[320px] bg-white/80 backdrop-blur-xl border border-white/20">
-                    <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
-                      <CardDescription>No lists yet</CardDescription>
-                      <Button 
-                        onClick={handleAddList} 
-                        variant="secondary" 
-                        size="sm"
-                        className="bg-black text-white hover:bg-black/90"
-                      >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Your First List
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+              <AddListButton />
             </div>
             <DragOverlay>
               {activeCard ? (
