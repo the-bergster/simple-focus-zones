@@ -2,16 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { PlusCircle, Loader2, Edit, Trash, ArrowLeft } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import { PlusCircle, Loader2, ArrowLeft } from "lucide-react";
 import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   DndContext,
   DragOverlay,
@@ -24,13 +17,11 @@ import {
   DragStartEvent,
   DragOverEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { supabase } from "@/integrations/supabase/client";
+import { DroppableList } from '@/components/focus-zone/DroppableList';
+import { ListDialog } from '@/components/focus-zone/ListDialog';
+import { CardDialog } from '@/components/focus-zone/CardDialog';
 
 interface List {
   id: string;
@@ -60,117 +51,6 @@ const cardFormSchema = z.object({
   description: z.string().optional(),
 });
 
-const DraggableCard = ({ card }: { card: Card }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: card.id,
-    data: {
-      type: 'card',
-      card,
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-    >
-      <Card className="bg-white border shadow-sm hover:shadow-md transition-shadow cursor-move mb-2">
-        <CardHeader className="p-3">
-          <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-          {card.description && (
-            <CardDescription className="text-xs">
-              {card.description}
-            </CardDescription>
-          )}
-        </CardHeader>
-      </Card>
-    </div>
-  );
-};
-
-const DroppableList = ({ list, cards }: { list: List, cards: Card[] }) => {
-  const { setNodeRef } = useSortable({
-    id: list.id,
-    data: {
-      type: 'list',
-      list,
-    },
-  });
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className="flex-none w-[300px]"
-    >
-      <div className="bg-white rounded-lg p-4 shadow-md min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-medium text-sm">{list.title}</h3>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {
-                setEditingList(list);
-                setIsListDialogOpen(true);
-              }}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={() => deleteList(list.id)}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <SortableContext
-            items={cards.map(card => card.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {cards
-              .sort((a, b) => a.position - b.position)
-              .map(card => (
-                <DraggableCard key={card.id} card={card} />
-              ))}
-          </SortableContext>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
-            size="sm"
-            onClick={() => {
-              setActiveListId(list.id);
-              setIsCardDialogOpen(true);
-            }}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add a card
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const FocusZone = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -184,21 +64,6 @@ const FocusZone = () => {
   const [editingList, setEditingList] = useState<List | null>(null);
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
-
-  const listForm = useForm<z.infer<typeof listFormSchema>>({
-    resolver: zodResolver(listFormSchema),
-    defaultValues: {
-      title: "",
-    },
-  });
-
-  const cardForm = useForm<z.infer<typeof cardFormSchema>>({
-    resolver: zodResolver(cardFormSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -221,18 +86,6 @@ const FocusZone = () => {
       fetchCards();
     }
   }, [lists]);
-
-  useEffect(() => {
-    if (editingList) {
-      listForm.reset({
-        title: editingList.title,
-      });
-    } else {
-      listForm.reset({
-        title: "",
-      });
-    }
-  }, [editingList, listForm]);
 
   const fetchFocusZone = async () => {
     try {
@@ -355,7 +208,6 @@ const FocusZone = () => {
 
       setCards([...cards, newCard]);
       setIsCardDialogOpen(false);
-      cardForm.reset();
       toast({
         title: "Card created",
         description: "Your new card has been created successfully.",
@@ -439,10 +291,6 @@ const FocusZone = () => {
     }
   };
 
-  const onCardSubmit = async (data: z.infer<typeof cardFormSchema>) => {
-    await createCard(data);
-  };
-
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const draggedCard = cards.find(card => card.id === active.id);
@@ -458,13 +306,11 @@ const FocusZone = () => {
     const activeCard = cards.find(card => card.id === active.id);
     if (!activeCard) return;
 
-    // If dropping over a list
     const overList = lists.find(list => list.id === over.id);
     if (overList) {
       setActiveListId(overList.id);
     }
 
-    // If dropping over another card
     const overCard = cards.find(card => card.id === over.id);
     if (overCard && activeCard.list_id !== overCard.list_id) {
       setCards(prevCards => {
@@ -496,7 +342,6 @@ const FocusZone = () => {
       let newListId = activeCard.list_id;
       let newPosition = activeCard.position;
 
-      // If dropping over a list
       const overList = lists.find(list => list.id === over.id);
       if (overList) {
         newListId = overList.id;
@@ -504,14 +349,12 @@ const FocusZone = () => {
         newPosition = listCards.length;
       }
 
-      // If dropping over another card
       const overCard = cards.find(card => card.id === over.id);
       if (overCard) {
         newListId = overCard.list_id;
         newPosition = overCard.position;
       }
 
-      // Update the card in the database
       const { error } = await supabase
         .from('cards')
         .update({
@@ -522,7 +365,6 @@ const FocusZone = () => {
 
       if (error) throw error;
 
-      // Update local state
       setCards(prevCards =>
         prevCards.map(card =>
           card.id === activeCard.id
@@ -572,82 +414,31 @@ const FocusZone = () => {
             </div>
           </div>
           
-          <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingList(null)} size="sm">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add List
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingList ? 'Edit List' : 'Create New List'}</DialogTitle>
-              </DialogHeader>
-              <Form {...listForm}>
-                <form onSubmit={listForm.handleSubmit(onListSubmit)} className="space-y-4">
-                  <FormField
-                    control={listForm.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">
-                    {editingList ? 'Update' : 'Create'}
-                  </Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => {
+              setEditingList(null);
+              setIsListDialogOpen(true);
+            }} 
+            size="sm"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add List
+          </Button>
         </div>
       </div>
 
-      <Dialog open={isCardDialogOpen} onOpenChange={setIsCardDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Card</DialogTitle>
-          </DialogHeader>
-          <Form {...cardForm}>
-            <form onSubmit={cardForm.handleSubmit(onCardSubmit)} className="space-y-4">
-              <FormField
-                control={cardForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={cardForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (optional)</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Create Card
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <ListDialog
+        open={isListDialogOpen}
+        onOpenChange={setIsListDialogOpen}
+        editingList={editingList}
+        onSubmit={onListSubmit}
+      />
+
+      <CardDialog
+        open={isCardDialogOpen}
+        onOpenChange={setIsCardDialogOpen}
+        onSubmit={createCard}
+      />
 
       {loading ? (
         <div className="flex justify-center items-center h-screen">
@@ -669,6 +460,9 @@ const FocusZone = () => {
                     key={list.id}
                     list={list}
                     cards={cards.filter(card => card.list_id === list.id)}
+                    onEditList={setEditingList}
+                    onDeleteList={deleteList}
+                    onAddCard={setActiveListId}
                   />
                 ))}
                 {lists.length === 0 && (
@@ -688,14 +482,14 @@ const FocusZone = () => {
               <DragOverlay>
                 {activeCard ? (
                   <Card className="bg-white border shadow-lg w-[280px]">
-                    <CardHeader className="p-3">
-                      <CardTitle className="text-sm font-medium">{activeCard.title}</CardTitle>
+                    <CardContent className="p-3">
+                      <h3 className="text-sm font-medium">{activeCard.title}</h3>
                       {activeCard.description && (
-                        <CardDescription className="text-xs">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {activeCard.description}
-                        </CardDescription>
+                        </p>
                       )}
-                    </CardHeader>
+                    </CardContent>
                   </Card>
                 ) : null}
               </DragOverlay>
