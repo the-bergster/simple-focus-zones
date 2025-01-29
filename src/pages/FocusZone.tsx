@@ -24,7 +24,13 @@ import {
   DragStartEvent,
   DragOverEvent,
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface List {
   id: string;
@@ -53,6 +59,49 @@ const cardFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
 });
+
+const DraggableCard = ({ card }: { card: Card }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card.id,
+    data: {
+      type: 'card',
+      card,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+    >
+      <Card className="bg-white border shadow-sm hover:shadow-md transition-shadow cursor-move mb-2">
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+          {card.description && (
+            <CardDescription className="text-xs">
+              {card.description}
+            </CardDescription>
+          )}
+        </CardHeader>
+      </Card>
+    </div>
+  );
+};
 
 const FocusZone = () => {
   const { id } = useParams();
@@ -84,7 +133,11 @@ const FocusZone = () => {
   });
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -330,45 +383,48 @@ const FocusZone = () => {
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = async (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const activeCard = cards.find(card => card.id === active.id);
-    const overList = lists.find(list => list.id === over.id);
+    if (!activeCard) return;
 
-    if (activeCard && overList) {
+    const overList = lists.find(list => list.id === over.id);
+    if (overList && activeCard.list_id !== overList.id) {
       setActiveListId(overList.id);
     }
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    
     if (!over) return;
 
     const activeCard = cards.find(card => card.id === active.id);
-    const overList = lists.find(list => list.id === over.id);
+    if (!activeCard) return;
 
-    if (activeCard && overList) {
-      const oldListCards = cards.filter(card => card.list_id === activeCard.list_id);
-      const newListCards = cards.filter(card => card.list_id === overList.id);
-      
+    const overList = lists.find(list => list.id === over.id);
+    if (!overList) return;
+
+    if (activeCard.list_id !== overList.id) {
       try {
+        const newListCards = cards.filter(card => card.list_id === overList.id);
+        const newPosition = newListCards.length;
+
         const { error } = await supabase
           .from('cards')
           .update({
             list_id: overList.id,
-            position: newListCards.length
+            position: newPosition,
           })
           .eq('id', activeCard.id);
 
         if (error) throw error;
 
         // Update local state
-        setCards(cards.map(card => 
+        setCards(cards.map(card =>
           card.id === activeCard.id
-            ? { ...card, list_id: overList.id, position: newListCards.length }
+            ? { ...card, list_id: overList.id, position: newPosition }
             : card
         ));
 
@@ -541,25 +597,23 @@ const FocusZone = () => {
                           </Button>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        {cards
-                          .filter(card => card.list_id === list.id)
-                          .sort((a, b) => a.position - b.position)
-                          .map(card => (
-                            <Card 
-                              key={card.id} 
-                              className="bg-white border shadow-sm hover:shadow-md transition-shadow cursor-move"
-                            >
-                              <CardHeader className="p-3">
-                                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                                {card.description && (
-                                  <CardDescription className="text-xs">
-                                    {card.description}
-                                  </CardDescription>
-                                )}
-                              </CardHeader>
-                            </Card>
-                          ))}
+                      <div
+                        className="space-y-2"
+                        data-list-id={list.id}
+                      >
+                        <SortableContext
+                          items={cards
+                            .filter(card => card.list_id === list.id)
+                            .map(card => card.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {cards
+                            .filter(card => card.list_id === list.id)
+                            .sort((a, b) => a.position - b.position)
+                            .map(card => (
+                              <DraggableCard key={card.id} card={card} />
+                            ))}
+                        </SortableContext>
                         <Button
                           variant="ghost"
                           className="w-full justify-start text-muted-foreground hover:text-foreground"
