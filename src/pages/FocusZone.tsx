@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -316,6 +316,28 @@ const FocusZone = () => {
       <span className="text-sm font-medium">Add another list</span>
     </button>
   );
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('lists-focus-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lists'
+        },
+        () => {
+          // Refetch lists when any changes occur
+          fetchLists();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
 
   if (loading) {
     return (

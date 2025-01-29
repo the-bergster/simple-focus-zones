@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ListActionsProps {
   listId: string;
-  isFocused: boolean;
+  isFocused: boolean | null;
   onDelete: () => void;
 }
 
@@ -31,9 +31,18 @@ export const ListActions = ({ listId, isFocused, onDelete }: ListActionsProps) =
 
         if (error) throw error;
 
+        // Fetch the updated list to get the new focus state
+        const { data: updatedList, error: fetchError } = await supabase
+          .from('lists')
+          .select('is_focused')
+          .eq('id', listId)
+          .single();
+
+        if (fetchError) throw fetchError;
+
         toast({
-          title: isFocused ? "List unfocused" : "List focused",
-          description: isFocused ? "List has been unfocused." : "List has been focused.",
+          title: updatedList.is_focused ? "List focused" : "List unfocused",
+          description: updatedList.is_focused ? "List has been focused." : "List has been unfocused.",
         });
       }
     } catch (error) {
