@@ -22,6 +22,8 @@ import { useFocusZone } from '@/hooks/useFocusZone';
 import { useListOperations } from '@/hooks/useListOperations';
 import { useCardOperations } from '@/hooks/useCardOperations';
 import { useToast } from "@/hooks/use-toast";
+import { WarningDialog } from "@/components/ui/warning-dialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const FocusZone = () => {
   const { id } = useParams();
@@ -210,15 +212,6 @@ const FocusZone = () => {
             }
             return newCards;
           });
-
-          toast({
-            title: "Card reordered",
-            description: "Card position has been updated.",
-          });
-          
-          setActiveCard(null);
-          setActiveListId(null);
-          return;
         } else {
           // Moving to a different list
           newPosition = overCard.position;
@@ -299,6 +292,28 @@ const FocusZone = () => {
     );
   }
 
+  const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
+  const [listToDelete, setListToDelete] = useState<string | null>(null);
+
+  const handleDeleteListClick = (listId: string) => {
+    setListToDelete(listId);
+    setDeleteListWarningOpen(true);
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    try {
+      await deleteList(listId);
+      setDeleteListWarningOpen(false);
+      setListToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Error deleting list",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-white/20 z-10">
@@ -325,6 +340,19 @@ const FocusZone = () => {
         onSubmit={createCard}
       />
 
+      <WarningDialog
+        open={deleteListWarningOpen}
+        onOpenChange={setDeleteListWarningOpen}
+        title="Delete List"
+        description="Are you sure you want to delete this list? All cards in this list will be permanently deleted."
+        confirmText="Delete"
+        onConfirm={() => {
+          if (listToDelete) {
+            handleDeleteList(listToDelete);
+          }
+        }}
+      />
+
       <div className="pt-24 px-8 pb-8">
         <div className="max-w-full mx-auto">
           <DndContext
@@ -340,7 +368,7 @@ const FocusZone = () => {
                   key={list.id}
                   list={list}
                   cards={cards.filter(card => card.list_id === list.id)}
-                  onDeleteList={deleteList}
+                  onDeleteList={handleDeleteListClick}
                   onAddCard={(listId) => {
                     setActiveListId(listId);
                     setIsCardDialogOpen(true);

@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { WarningDialog } from "@/components/ui/warning-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Loader2, Edit, Trash } from "lucide-react";
@@ -34,6 +35,8 @@ const Dashboard = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [editingZone, setEditingZone] = useState<FocusZone | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteWarningOpen, setDeleteWarningOpen] = useState(false);
+  const [zoneToDelete, setZoneToDelete] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -176,11 +179,12 @@ const Dashboard = () => {
     }
   };
 
-  const deleteFocusZone = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this focus zone? This action cannot be undone.")) {
-      return;
-    }
+  const handleDeleteClick = (zoneId: string) => {
+    setZoneToDelete(zoneId);
+    setDeleteWarningOpen(true);
+  };
 
+  const deleteFocusZone = async (id: string) => {
     try {
       const { error } = await supabase
         .from('focus_zones')
@@ -227,12 +231,6 @@ const Dashboard = () => {
 
         <div className="mb-6">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingZone(null)} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2" />
-                Create Focus Zone
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingZone ? 'Edit Focus Zone' : 'Create New Focus Zone'}</DialogTitle>
@@ -273,6 +271,25 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        <WarningDialog
+          open={deleteWarningOpen}
+          onOpenChange={setDeleteWarningOpen}
+          title="Delete Focus Zone"
+          description="Are you sure you want to delete this focus zone? This action cannot be undone."
+          confirmText="Delete"
+          onConfirm={() => {
+            if (zoneToDelete) {
+              deleteFocusZone(zoneToDelete);
+              setDeleteWarningOpen(false);
+              setZoneToDelete(null);
+            }
+          }}
+          onCancel={() => {
+            setDeleteWarningOpen(false);
+            setZoneToDelete(null);
+          }}
+        />
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -319,7 +336,7 @@ const Dashboard = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => deleteFocusZone(zone.id)}
+                    onClick={() => handleDeleteClick(zone.id)}
                   >
                     <Trash className="h-4 w-4" />
                   </Button>
