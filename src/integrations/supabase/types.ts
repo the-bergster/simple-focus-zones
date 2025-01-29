@@ -79,6 +79,7 @@ export type Database = {
           created_at: string
           focus_zone_id: string
           id: string
+          is_focused: boolean | null
           position: number
           title: string
           updated_at: string
@@ -87,6 +88,7 @@ export type Database = {
           created_at?: string
           focus_zone_id: string
           id?: string
+          is_focused?: boolean | null
           position: number
           title: string
           updated_at?: string
@@ -95,6 +97,7 @@ export type Database = {
           created_at?: string
           focus_zone_id?: string
           id?: string
+          is_focused?: boolean | null
           position?: number
           title?: string
           updated_at?: string
@@ -135,7 +138,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      toggle_list_focus: {
+        Args: {
+          list_id_param: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
