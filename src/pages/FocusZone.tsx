@@ -226,27 +226,26 @@ const FocusZone = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{focusZone?.title}</h1>
-            {focusZone?.description && (
-              <p className="text-muted-foreground mt-1">{focusZone.description}</p>
-            )}
+    <div className="min-h-screen bg-[#f5f6f8]">
+      <div className="fixed top-0 left-0 right-0 bg-white border-b z-10 px-8 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{focusZone?.title}</h1>
+              {focusZone?.description && (
+                <p className="text-sm text-muted-foreground">{focusZone.description}</p>
+              )}
+            </div>
           </div>
-        </div>
-
-        <div className="mb-6">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingList(null)} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2" />
-                Create List
+              <Button onClick={() => setEditingList(null)} size="sm">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add List
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -276,55 +275,74 @@ const FocusZone = () => {
             </DialogContent>
           </Dialog>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        ) : lists.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
-              <CardDescription>You haven't created any lists yet.</CardDescription>
-              <Button onClick={() => setIsDialogOpen(true)} variant="secondary">
-                <PlusCircle className="mr-2" />
-                Create Your First List
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {lists.map((list) => (
-              <Card key={list.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle>{list.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* Cards will be implemented here */}
-                </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      setEditingList(list);
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => deleteList(list.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-screen">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <div className="pt-24 px-8 pb-8">
+          <div className="max-w-full mx-auto">
+            <div className="flex gap-4 overflow-x-auto pb-4 min-h-[calc(100vh-8rem)]">
+              {lists.map((list) => (
+                <div key={list.id} className="flex-none w-[300px]">
+                  <div className="bg-[#f0f1f3] rounded-lg p-4 h-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-medium text-sm">{list.title}</h3>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setEditingList(list);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => deleteList(list.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {/* Cards will be implemented here */}
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-muted-foreground hover:text-foreground"
+                        size="sm"
+                      >
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add a card
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {lists.length === 0 && (
+                <div className="flex items-center justify-center w-full">
+                  <Card className="w-[300px]">
+                    <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
+                      <CardDescription>No lists yet</CardDescription>
+                      <Button onClick={() => setIsDialogOpen(true)} variant="secondary" size="sm">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Your First List
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
