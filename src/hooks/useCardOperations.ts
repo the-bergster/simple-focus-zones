@@ -18,7 +18,7 @@ interface Card {
   updated_at: string;
 }
 
-export const useCardOperations = (onCardsChange: (cards: Card[]) => void) => {
+export const useCardOperations = (setCards: (cards: Card[]) => void) => {
   const { toast } = useToast();
   const [isCardDialogOpen, setIsCardDialogOpen] = useState(false);
   const [activeListId, setActiveListId] = useState<string | null>(null);
@@ -28,30 +28,42 @@ export const useCardOperations = (onCardsChange: (cards: Card[]) => void) => {
     if (!activeListId) return;
 
     try {
-      const listCards = await supabase
+      // First get all cards for the active list to determine the new position
+      const { data: existingCards } = await supabase
         .from('cards')
         .select('*')
-        .eq('list_id', activeListId);
+        .eq('list_id', activeListId)
+        .order('position');
 
-      const newPosition = (listCards.data?.length || 0);
-      
+      const newPosition = (existingCards?.length || 0);
+
+      // Create the new card
       const { data: newCard, error } = await supabase
         .from('cards')
         .insert({
           title: data.title,
           description: data.description || null,
           position: newPosition,
-          list_id: activeListId
+          list_id: activeListId,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      const updatedCards = (prevCards: Card[]) => [...prevCards, newCard as Card];
-      onCardsChange(updatedCards([]));
-      
+      // Fetch all cards to ensure we have the latest state
+      const { data: allCards } = await supabase
+        .from('cards')
+        .select('*')
+        .order('position');
+
+      if (allCards) {
+        setCards(allCards);
+      }
+
       setIsCardDialogOpen(false);
+      setActiveListId(null);
+      
       toast({
         title: "Card created",
         description: "Your new card has been created successfully.",

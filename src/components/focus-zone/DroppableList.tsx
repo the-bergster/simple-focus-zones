@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MoreHorizontal } from "lucide-react";
 import { DraggableCard } from "./DraggableCard";
 import {
@@ -44,6 +46,8 @@ export const DroppableList = ({
   onDeleteList,
   onAddCard,
 }: DroppableListProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(list.title);
   const { setNodeRef } = useSortable({
     id: list.id,
     data: {
@@ -52,27 +56,62 @@ export const DroppableList = ({
     },
   });
 
+  const handleTitleSubmit = () => {
+    if (editedTitle.trim() !== list.title) {
+      onEditList({
+        ...list,
+        title: editedTitle.trim()
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTitleSubmit();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(list.title);
+      setIsEditing(false);
+    }
+  };
+
   return (
     <div 
       ref={setNodeRef}
       className="flex-none w-[320px]"
     >
       <div className="bg-slate-100/80 backdrop-blur-xl rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/20 min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300">
-        <div className="flex items-center justify-between mb-4 group">
-          <h3 className="font-medium text-sm tracking-tight text-slate-700">{list.title}</h3>
+        <div className="flex items-center justify-between mb-4">
+          {isEditing ? (
+            <Input
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleTitleSubmit}
+              onKeyDown={handleKeyDown}
+              className="h-7 text-sm font-medium"
+              autoFocus
+            />
+          ) : (
+            <h3 
+              className="font-medium text-sm tracking-tight text-slate-700 cursor-pointer hover:text-slate-900"
+              onClick={() => setIsEditing(true)}
+            >
+              {list.title}
+            </h3>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 text-slate-400 hover:text-slate-600"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 bg-white/95 backdrop-blur-xl border-slate-200/60">
               <DropdownMenuItem 
-                onClick={() => onEditList(list)}
+                onClick={() => setIsEditing(true)}
                 className="text-sm cursor-pointer text-slate-600 hover:text-slate-900 focus:text-slate-900"
               >
                 Edit List
