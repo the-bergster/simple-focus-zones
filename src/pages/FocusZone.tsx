@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { FocusZoneContent } from '@/components/focus-zone/FocusZoneContent';
 import { useFocusZone } from '@/hooks/useFocusZone';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 const FocusZone = () => {
   const { id } = useParams();
@@ -16,6 +17,13 @@ const FocusZone = () => {
     setCards,
     setLists,
   } = useFocusZone(id);
+
+  // Add real-time subscriptions
+  useRealtimeSubscription({
+    focusZoneId: id!,
+    onListsChange: setLists,
+    onCardsChange: setCards,
+  });
 
   if (loading) {
     return (
