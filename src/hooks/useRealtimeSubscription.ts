@@ -1,22 +1,45 @@
 import { useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import type { List, Card } from '@/types/focus-zone';
+import type { List, Card, FocusZone } from '@/types/focus-zone';
 
 interface UseRealtimeSubscriptionProps {
   focusZoneId: string;
   onListsChange: (lists: List[]) => void;
   onCardsChange: (cards: Card[]) => void;
+  onFocusZoneChange?: (focusZone: FocusZone) => void;
 }
 
 export const useRealtimeSubscription = ({
   focusZoneId,
   onListsChange,
   onCardsChange,
+  onFocusZoneChange,
 }: UseRealtimeSubscriptionProps) => {
   useEffect(() => {
     // Create a channel for all real-time subscriptions
     const channel = supabase
       .channel('focus-zone-changes')
+      // Listen for focus zone changes
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'focus_zones',
+          filter: `id=eq.${focusZoneId}`
+        },
+        async () => {
+          if (onFocusZoneChange) {
+            const { data } = await supabase
+              .from('focus_zones')
+              .select('*')
+              .eq('id', focusZoneId)
+              .single();
+            
+            if (data) onFocusZoneChange(data);
+          }
+        }
+      )
       // Listen for lists changes
       .on(
         'postgres_changes',
@@ -59,5 +82,5 @@ export const useRealtimeSubscription = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [focusZoneId, onListsChange, onCardsChange]);
+  }, [focusZoneId, onListsChange, onCardsChange, onFocusZoneChange]);
 };

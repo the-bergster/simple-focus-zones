@@ -16,6 +16,7 @@ const FocusZone = () => {
     loading,
     setCards,
     setLists,
+    setFocusZone,
   } = useFocusZone(id);
 
   // Add real-time subscriptions
@@ -23,6 +24,7 @@ const FocusZone = () => {
     focusZoneId: id!,
     onListsChange: setLists,
     onCardsChange: setCards,
+    onFocusZoneChange: setFocusZone,
   });
 
   if (loading) {
