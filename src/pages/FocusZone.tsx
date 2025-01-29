@@ -38,8 +38,6 @@ const FocusZone = () => {
   } = useFocusZone(id);
 
   const {
-    isListDialogOpen,
-    setIsListDialogOpen,
     createList,
     deleteList,
   } = useListOperations(id!, setLists);
@@ -53,6 +51,11 @@ const FocusZone = () => {
     setActiveCard,
     createCard,
   } = useCardOperations(setCards);
+
+  const handleAddList = async () => {
+    const defaultTitle = "New List";
+    await createList({ title: defaultTitle });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -309,7 +312,7 @@ const FocusZone = () => {
             </div>
             
             <Button 
-              onClick={() => setIsListDialogOpen(true)} 
+              onClick={handleAddList} 
               size="sm"
               className="bg-black text-white hover:bg-black/90"
             >
@@ -354,7 +357,7 @@ const FocusZone = () => {
                     <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
                       <CardDescription>No lists yet</CardDescription>
                       <Button 
-                        onClick={() => setIsListDialogOpen(true)} 
+                        onClick={handleAddList} 
                         variant="secondary" 
                         size="sm"
                         className="bg-black text-white hover:bg-black/90"

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import * as z from "zod";
@@ -18,8 +17,6 @@ interface List {
 
 export const useListOperations = (focusZoneId: string, onListsChange: (lists: List[]) => void) => {
   const { toast } = useToast();
-  const [isListDialogOpen, setIsListDialogOpen] = useState(false);
-  const [editingList, setEditingList] = useState<List | null>(null);
 
   const createList = async (data: z.infer<typeof listFormSchema>) => {
     try {
@@ -41,11 +38,9 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
       
-      // Update the lists state with the new list
       const updatedLists = [...(lists || []), newList] as List[];
       onListsChange(updatedLists);
       
-      setIsListDialogOpen(false);
       toast({
         title: "List created",
         description: "Your new list has been created successfully.",
@@ -53,47 +48,6 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
     } catch (error) {
       toast({
         title: "Error creating list",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateList = async (data: z.infer<typeof listFormSchema>) => {
-    if (!editingList) return;
-
-    try {
-      const { data: updatedList, error } = await supabase
-        .from('lists')
-        .update({
-          title: data.title,
-        })
-        .eq('id', editingList.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Fetch all lists to ensure we have the latest state
-      const { data: lists } = await supabase
-        .from('lists')
-        .select('*')
-        .eq('focus_zone_id', focusZoneId)
-        .order('position');
-
-      if (lists) {
-        onListsChange(lists as List[]);
-      }
-      
-      setEditingList(null);
-      setIsListDialogOpen(false);
-      toast({
-        title: "List updated",
-        description: "Your list has been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error updating list",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       });
@@ -113,7 +67,6 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
 
       if (error) throw error;
 
-      // Fetch all remaining lists to ensure we have the latest state
       const { data: remainingLists } = await supabase
         .from('lists')
         .select('*')
@@ -136,12 +89,7 @@ export const useListOperations = (focusZoneId: string, onListsChange: (lists: Li
   };
 
   return {
-    isListDialogOpen,
-    setIsListDialogOpen,
-    editingList,
-    setEditingList,
     createList,
-    updateList,
     deleteList,
   };
 };
