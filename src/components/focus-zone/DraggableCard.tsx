@@ -45,7 +45,7 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
       {...attributes}
       {...listeners}
     >
-      <Card className="bg-white shadow-[0_2px_12px_rgb(0,0,0,0.02)] hover:shadow-[0_2px_12px_rgb(0,0,0,0.04)] rounded-xl p-3 cursor-move mb-2 border border-slate-100 group transition-all duration-200">
+      <Card className="bg-neutral-50 shadow-[0_2px_12px_rgb(0,0,0,0.02)] hover:shadow-[0_2px_12px_rgb(0,0,0,0.04)] rounded-xl p-3 cursor-move mb-2 border border-neutral-100 group transition-all duration-200">
         <CardHeader className="p-0">
           <CardTitle className="text-sm font-medium text-slate-700">{card.title}</CardTitle>
           {card.description && (
