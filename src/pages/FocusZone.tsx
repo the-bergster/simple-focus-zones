@@ -32,7 +32,7 @@ interface List {
   focus_zone_id: string;
   created_at: string;
   updated_at: string;
-  is_focused: boolean;
+  is_focused: boolean | null;
 }
 
 const FocusZone = () => {
