@@ -36,6 +36,7 @@ export const DroppableList = ({
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
     
     try {
@@ -125,8 +126,6 @@ export const DroppableList = ({
           title: "Card created",
           description: "Item has been moved to the list successfully",
         });
-      } else {
-        console.log('Dropped item is not a dont-forget-item:', data);
       }
     } catch (error) {
       console.error('Drop error:', error);
@@ -141,7 +140,18 @@ export const DroppableList = ({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    
+    // Only set drag over if it's a dont-forget-item
+    try {
+      const rawData = e.dataTransfer.getData('text/plain');
+      const data = JSON.parse(rawData);
+      if (data.type === 'dont-forget-item') {
+        setIsDragOver(true);
+      }
+    } catch (error) {
+      // If we can't read the data, assume it's not our type
+      setIsDragOver(false);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -150,19 +160,28 @@ export const DroppableList = ({
     setIsDragOver(false);
   };
 
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
   return (
     <div 
       ref={setNodeRef}
       className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="px-3">
         <div 
-          className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border border-white/20 transition-all duration-200 ${
-            isDragOver ? 'ring-2 ring-primary/50 bg-white/80' : ''
-          }`}
+          className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border ${
+            isDragOver 
+              ? 'ring-2 ring-primary border-primary bg-white/80' 
+              : 'border-white/20'
+          } transition-all duration-200`}
         >
           <div className="flex items-center justify-between mb-4">
             <ListTitle
