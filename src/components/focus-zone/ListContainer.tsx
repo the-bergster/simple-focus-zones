@@ -8,6 +8,7 @@ interface ListContainerProps {
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
+  isDontForgetBox?: boolean;
 }
 
 export const ListContainer = ({
@@ -16,6 +17,7 @@ export const ListContainer = ({
   onDragOver,
   onDragLeave,
   onDrop,
+  isDontForgetBox = false,
 }: ListContainerProps) => {
   return (
     <div 
@@ -27,7 +29,8 @@ export const ListContainer = ({
     >
       <Card 
         className={cn(
-          "p-4 bg-white/50 backdrop-blur-sm border transition-all duration-200",
+          "p-4 backdrop-blur-sm border transition-all duration-200",
+          isDontForgetBox ? "bg-amber-50/50 border-amber-200/50" : "bg-white/50 border-foreground/15",
           isDragOver && "ring-2 ring-primary border-primary bg-white/80"
         )}
       >

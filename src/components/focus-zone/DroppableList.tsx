@@ -79,27 +79,25 @@ export const DroppableList = ({
     }
   };
 
-  // Don't show the Don't Forget Box in the regular lists
-  if (list.is_dont_forget_box) {
-    return null;
-  }
+  const listClasses = list.is_dont_forget_box 
+    ? 'flex-none w-[320px] bg-amber-50/50' 
+    : `flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`;
 
   return (
-    <div 
-      ref={setNodeRef}
-      className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
-    >
+    <div ref={setNodeRef} className={listClasses}>
       <ListContainer
         isDragOver={isDragOver}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        isDontForgetBox={list.is_dont_forget_box || false}
       >
         <ListHeader
           listId={list.id}
           title={list.title}
           isFocused={list.is_focused || false}
           onDelete={() => onDeleteList(list.id)}
+          isDontForgetBox={list.is_dont_forget_box || false}
         />
         <ListCards
           cards={cards}

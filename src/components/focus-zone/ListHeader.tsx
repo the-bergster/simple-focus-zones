@@ -6,20 +6,29 @@ interface ListHeaderProps {
   title: string;
   isFocused: boolean;
   onDelete: () => void;
+  isDontForgetBox?: boolean;
 }
 
-export const ListHeader = ({ listId, title, isFocused, onDelete }: ListHeaderProps) => {
+export const ListHeader = ({ 
+  listId, 
+  title, 
+  isFocused,
+  onDelete,
+  isDontForgetBox = false,
+}: ListHeaderProps) => {
   return (
-    <div className="flex items-center justify-between mb-4">
+    <div className="flex items-start justify-between gap-2 mb-4">
       <ListTitle
         listId={listId}
-        initialTitle={title}
-      />
-      <ListActions
-        listId={listId}
+        title={title}
         isFocused={isFocused}
-        onDelete={onDelete}
       />
+      {!isDontForgetBox && (
+        <ListActions
+          listId={listId}
+          onDelete={onDelete}
+        />
+      )}
     </div>
   );
 };
