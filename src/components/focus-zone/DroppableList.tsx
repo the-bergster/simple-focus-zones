@@ -27,7 +27,7 @@ export const DroppableList = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
   
-  const { setNodeRef } = useSortable({
+  const { setNodeRef, attributes, listeners } = useSortable({
     id: list.id,
     data: {
       type: 'list',
@@ -92,11 +92,13 @@ export const DroppableList = ({
 
   return (
     <div 
-      ref={setNodeRef} 
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       className={listClasses}
       style={{ 
         position: isInDrawer ? 'relative' : undefined,
-        zIndex: isInDrawer ? 100 : undefined,
+        zIndex: isInDrawer ? 1002 : undefined,
         pointerEvents: 'auto'
       }}
     >

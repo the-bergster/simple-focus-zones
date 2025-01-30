@@ -5,12 +5,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { DroppableList } from "../focus-zone/DroppableList";
 import type { List, Card } from '@/types/focus-zone';
+import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 
 export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [dontForgetList, setDontForgetList] = useState<List | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: closestCorners,
+    })
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -63,7 +75,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
         side="right" 
         className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl"
         style={{ 
-          zIndex: 50,
+          zIndex: 1000,
           pointerEvents: 'auto'
         }}
       >
@@ -71,31 +83,36 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
           <SheetTitle>Don't Forget Box</SheetTitle>
         </SheetHeader>
         
-        <div 
-          className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2"
-          style={{ 
-            pointerEvents: 'auto',
-            position: 'relative',
-            zIndex: 51
-          }}
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCorners}
         >
-          {loading ? (
-            <div className="flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : !dontForgetList ? (
-            <p className="text-center text-muted-foreground">
-              No Don't Forget Box found
-            </p>
-          ) : (
-            <DroppableList
-              list={dontForgetList}
-              cards={cards}
-              onDeleteList={handleDeleteList}
-              isInDrawer={true}
-            />
-          )}
-        </div>
+          <div 
+            className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2"
+            style={{ 
+              pointerEvents: 'auto',
+              position: 'relative',
+              zIndex: 1001
+            }}
+          >
+            {loading ? (
+              <div className="flex justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : !dontForgetList ? (
+              <p className="text-center text-muted-foreground">
+                No Don't Forget Box found
+              </p>
+            ) : (
+              <DroppableList
+                list={dontForgetList}
+                cards={cards}
+                onDeleteList={handleDeleteList}
+                isInDrawer={true}
+              />
+            )}
+          </div>
+        </DndContext>
       </SheetContent>
     </Sheet>
   );
