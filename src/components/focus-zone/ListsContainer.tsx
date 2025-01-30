@@ -54,7 +54,7 @@ export const ListsContainer = ({
             list={list}
             cards={cards.filter(card => card.list_id === list.id)}
             onDeleteList={onDeleteList}
-            onAddCard={onAddCard}
+            onAddCard={() => onAddCard(list.id)}
             isFirstList={index === 0}
           />
         ))}

@@ -32,6 +32,9 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
   const fetchItems = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { data, error } = await supabase
         .from('dont_forget_items')
         .select('*')
@@ -56,11 +59,15 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
     setAdding(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { error } = await supabase
         .from('dont_forget_items')
         .insert({
           title: title.trim(),
           description: description.trim() || null,
+          owner_id: user.id,
         });
 
       if (error) throw error;
