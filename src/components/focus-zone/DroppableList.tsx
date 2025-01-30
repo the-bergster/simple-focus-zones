@@ -40,6 +40,7 @@ export const DroppableList = ({
     
     try {
       const rawData = e.dataTransfer.getData('text/plain');
+      console.log('Drop event received:', e);
       console.log('Raw drop data:', rawData);
       
       if (!rawData) {
@@ -158,7 +159,11 @@ export const DroppableList = ({
       onDrop={handleDrop}
     >
       <div className="px-3">
-        <div className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border border-white/20 transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50 bg-white/80' : ''}`}>
+        <div 
+          className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border border-white/20 transition-all duration-200 ${
+            isDragOver ? 'ring-2 ring-primary/50 bg-white/80' : ''
+          }`}
+        >
           <div className="flex items-center justify-between mb-4">
             <ListTitle
               listId={list.id}
