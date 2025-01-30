@@ -62,12 +62,16 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       <SheetContent 
         side="right" 
         className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl"
+        style={{ zIndex: 50 }}
       >
         <SheetHeader>
           <SheetTitle>Don't Forget Box</SheetTitle>
         </SheetHeader>
         
-        <div className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2">
+        <div 
+          className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2"
+          style={{ pointerEvents: 'auto' }}
+        >
           {loading ? (
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />

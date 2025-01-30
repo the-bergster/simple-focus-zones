@@ -91,7 +91,14 @@ export const DroppableList = ({
     : `flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`;
 
   return (
-    <div ref={setNodeRef} className={listClasses}>
+    <div 
+      ref={setNodeRef} 
+      className={listClasses}
+      style={{ 
+        position: isInDrawer ? 'relative' : undefined,
+        zIndex: isInDrawer ? 100 : undefined,
+      }}
+    >
       <ListContainer
         isDragOver={isDragOver}
         onDragOver={handleDragOver}
