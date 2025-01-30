@@ -97,6 +97,7 @@ export const DroppableList = ({
       style={{ 
         position: isInDrawer ? 'relative' : undefined,
         zIndex: isInDrawer ? 100 : undefined,
+        pointerEvents: 'auto'
       }}
     >
       <ListContainer
