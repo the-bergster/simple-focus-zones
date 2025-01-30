@@ -44,6 +44,11 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
     opacity: isDragging ? 0.5 : undefined,
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(card));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   const handleDelete = async () => {
     try {
       await supabase
@@ -83,6 +88,8 @@ export const DraggableCard = ({ card }: DraggableCardProps) => {
         style={style}
         {...attributes}
         {...listeners}
+        draggable
+        onDragStart={handleDragStart}
       >
         <Card className="bg-card/90 shadow-sm hover:shadow-md rounded-xl p-3 cursor-move border border-foreground/15 group transition-all duration-200">
           <CardHeader className="p-0 flex flex-row items-start justify-between">

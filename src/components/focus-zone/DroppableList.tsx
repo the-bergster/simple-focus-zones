@@ -60,27 +60,23 @@ export const DroppableList = ({
     setIsDragOver(false);
     
     try {
-      const rawData = e.dataTransfer.getData('text/plain');
-      if (!rawData) return;
-
-      const data = JSON.parse(rawData);
+      const cardData = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (!cardData || !cardData.id) return;
       
-      if (data.type === 'card') {
-        const { error } = await supabase
-          .from('cards')
-          .update({
-            list_id: list.id,
-            position: cards.length,
-          })
-          .eq('id', data.card.id);
+      const { error } = await supabase
+        .from('cards')
+        .update({
+          list_id: list.id,
+          position: cards.length,
+        })
+        .eq('id', cardData.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Card moved",
-          description: "Card has been moved to the list successfully",
-        });
-      }
+      toast({
+        title: "Card moved",
+        description: "Card has been moved to the list successfully",
+      });
     } catch (error) {
       console.error('Drop error:', error);
       toast({
