@@ -39,12 +39,20 @@ export const DroppableList = ({
     setIsDragOver(false);
     
     try {
-      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-      console.log('Dropped data:', data);
+      const rawData = e.dataTransfer.getData('text/plain');
+      console.log('Raw drop data:', rawData);
+      
+      const data = JSON.parse(rawData);
+      console.log('Parsed drop data:', data);
       
       if (data.type === 'dont-forget-item') {
+        console.log('Processing dont-forget-item drop');
+        
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current user:', user);
+        
         if (!user) {
+          console.error('No authenticated user found');
           toast({
             title: "Authentication error",
             description: "You must be logged in to perform this action",
@@ -53,6 +61,7 @@ export const DroppableList = ({
           return;
         }
 
+        console.log('Creating new card in list:', list.id);
         // Create a new card in the list
         const { data: newCard, error: cardError } = await supabase
           .from('cards')
@@ -67,10 +76,18 @@ export const DroppableList = ({
 
         if (cardError) {
           console.error('Card creation error:', cardError);
-          throw cardError;
+          toast({
+            title: "Error creating card",
+            description: cardError.message,
+            variant: "destructive",
+          });
+          return;
         }
 
+        console.log('New card created:', newCard);
+
         // Delete the item from dont_forget_items
+        console.log('Deleting dont-forget-item:', data.id);
         const { error: deleteError } = await supabase
           .from('dont_forget_items')
           .delete()
@@ -80,18 +97,27 @@ export const DroppableList = ({
           console.error('Delete error:', deleteError);
           // If deletion fails, we should remove the card we just created
           if (newCard) {
+            console.log('Rolling back card creation...');
             await supabase
               .from('cards')
               .delete()
               .eq('id', newCard.id);
           }
-          throw deleteError;
+          toast({
+            title: "Error deleting item",
+            description: deleteError.message,
+            variant: "destructive",
+          });
+          return;
         }
 
+        console.log('Drop operation completed successfully');
         toast({
           title: "Card created",
           description: "Item has been moved to the list successfully",
         });
+      } else {
+        console.log('Dropped item is not a dont-forget-item:', data);
       }
     } catch (error) {
       console.error('Drop error:', error);
