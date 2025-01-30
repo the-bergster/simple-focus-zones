@@ -43,16 +43,14 @@ export const DroppableList = ({
         if (!user) throw new Error("No user found");
 
         // Create a new card in the list
-        const { data: newCard, error: cardError } = await supabase
+        const { error: cardError } = await supabase
           .from('cards')
           .insert({
             title: data.title,
             description: data.description,
             list_id: list.id,
             position: cards.length,
-          })
-          .select()
-          .single();
+          });
 
         if (cardError) throw cardError;
 
@@ -68,14 +66,6 @@ export const DroppableList = ({
           title: "Card moved",
           description: "Item has been moved to the list successfully",
         });
-
-        // Force a refresh of the cards by triggering a state update
-        const { data: updatedCards, error: fetchError } = await supabase
-          .from('cards')
-          .select('*')
-          .eq('list_id', list.id);
-
-        if (fetchError) throw fetchError;
       }
     } catch (error) {
       console.error('Drop error:', error);

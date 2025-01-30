@@ -118,14 +118,6 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       <SheetContent 
         side="right" 
         className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl"
-        style={{ 
-          position: 'fixed',
-          right: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 50,
-          boxShadow: '0 0 0 100vw rgba(0, 0, 0, 0)',
-        }}
       >
         <SheetHeader>
           <SheetTitle>Don't Forget Box</SheetTitle>
@@ -173,11 +165,20 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <Card 
+                <div 
                   key={item.id}
-                  className="cursor-move"
                   draggable="true"
                   onDragStart={(e) => {
+                    const dragPreview = document.createElement('div');
+                    dragPreview.className = 'task-card';
+                    dragPreview.innerHTML = `
+                      <h3 class="text-sm font-medium">${item.title}</h3>
+                      ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
+                    `;
+                    document.body.appendChild(dragPreview);
+                    e.dataTransfer.setDragImage(dragPreview, 0, 0);
+                    setTimeout(() => document.body.removeChild(dragPreview), 0);
+                    
                     e.dataTransfer.setData('text/plain', JSON.stringify({
                       id: item.id,
                       title: item.title,
@@ -186,24 +187,26 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
                     }));
                   }}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-base">{item.title}</CardTitle>
-                  </CardHeader>
-                  {item.description && (
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
-                    </CardContent>
-                  )}
-                  <CardFooter className="justify-end">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
+                  <Card className="task-card group">
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                    </CardHeader>
+                    {item.description && (
+                      <CardContent className="p-3 pt-0">
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      </CardContent>
+                    )}
+                    <CardFooter className="justify-end p-3 pt-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
               ))}
             </div>
           )}
