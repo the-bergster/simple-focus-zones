@@ -20,12 +20,13 @@ export const ListHeader = ({
     <div className="flex items-start justify-between gap-2 mb-4">
       <ListTitle
         listId={listId}
-        title={title}
+        initialTitle={title}
         isFocused={isFocused}
       />
       {!isDontForgetBox && (
         <ListActions
           listId={listId}
+          isFocused={isFocused}
           onDelete={onDelete}
         />
       )}

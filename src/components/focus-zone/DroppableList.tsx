@@ -13,6 +13,7 @@ interface DroppableListProps {
   cards: Card[];
   onDeleteList: (listId: string) => void;
   isFirstList?: boolean;
+  isInDrawer?: boolean;
 }
 
 export const DroppableList = ({ 
@@ -20,6 +21,7 @@ export const DroppableList = ({
   cards,
   onDeleteList,
   isFirstList = false,
+  isInDrawer = false,
 }: DroppableListProps) => {
   const [isCreateCardDialogOpen, setIsCreateCardDialogOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -78,6 +80,11 @@ export const DroppableList = ({
       });
     }
   };
+
+  // Hide the Don't Forget Box from the main view unless it's in the drawer
+  if (list.is_dont_forget_box && !isInDrawer) {
+    return null;
+  }
 
   const listClasses = list.is_dont_forget_box 
     ? 'flex-none w-[320px] bg-amber-50/50' 

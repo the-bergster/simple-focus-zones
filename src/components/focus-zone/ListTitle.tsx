@@ -1,101 +1,58 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-interface ListTitleProps {
+export interface ListTitleProps {
   listId: string;
   initialTitle: string;
+  isFocused: boolean;
 }
 
-export const ListTitle = ({ listId, initialTitle }: ListTitleProps) => {
+export const ListTitle = ({ listId, initialTitle, isFocused }: ListTitleProps) => {
+  const [title, setTitle] = useState(initialTitle);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(initialTitle);
   const { toast } = useToast();
 
-  const handleTitleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    if (editedTitle.trim() === '') {
-      toast({
-        title: "Invalid title",
-        description: "Title cannot be empty",
-        variant: "destructive",
-      });
-      setEditedTitle(initialTitle);
-      setIsEditing(false);
-      return;
-    }
-
-    if (editedTitle.trim() !== initialTitle) {
+  const handleBlur = async () => {
+    setIsEditing(false);
+    if (title !== initialTitle) {
       try {
         const { error } = await supabase
           .from('lists')
-          .update({ title: editedTitle.trim() })
+          .update({ title })
           .eq('id', listId);
 
         if (error) throw error;
-        
-        toast({
-          title: "List updated",
-          description: "List title has been updated successfully.",
-        });
       } catch (error) {
-        console.error('Error updating list:', error);
         toast({
-          title: "Error updating list",
-          description: error instanceof Error ? error.message : "An error occurred",
+          title: "Error updating list title",
+          description: error instanceof Error ? error.message : "Failed to update list title",
           variant: "destructive",
         });
-        setEditedTitle(initialTitle);
       }
     }
-    setIsEditing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleTitleSubmit();
-    } else if (e.key === 'Escape') {
-      setEditedTitle(initialTitle);
-      setIsEditing(false);
-    }
-  };
-
-  if (isEditing) {
-    return (
-      <form 
-        onSubmit={handleTitleSubmit} 
-        className="flex-1 mr-2" 
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Input
-          value={editedTitle}
-          onChange={(e) => setEditedTitle(e.target.value)}
-          onBlur={handleTitleSubmit}
-          onKeyDown={handleKeyDown}
-          className="h-7 text-sm font-medium"
-          autoFocus
-        />
-      </form>
-    );
-  }
-
-  return (
-    <h3 
-      className="font-medium text-sm tracking-tight text-slate-700 cursor-pointer hover:text-slate-900"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsEditing(true);
+  return isEditing ? (
+    <Input
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleBlur();
+        }
       }}
+      className="h-7 text-sm font-medium"
+      autoFocus
+    />
+  ) : (
+    <button
+      onClick={() => setIsEditing(true)}
+      className="text-sm font-medium hover:underline decoration-dotted"
     >
-      {editedTitle}
-    </h3>
+      {title}
+    </button>
   );
 };
