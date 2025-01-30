@@ -35,30 +35,32 @@ export const DroppableList = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(true);
+    console.log('Drag over list:', list.title);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(false);
+    console.log('Drag leave list:', list.title);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragOver(false);
+    console.log('Drop event on list:', list.title);
     
     try {
       const rawData = e.dataTransfer.getData('text/plain');
+      console.log('Raw drop data:', rawData);
+      
       if (!rawData) {
         console.error('No data received in drop event');
         return;
       }
 
       const data = JSON.parse(rawData);
-      console.log('Drop data:', data);
+      console.log('Parsed drop data:', data);
       
       if (data.type === 'dont-forget-item') {
         const { data: { user } } = await supabase.auth.getUser();
@@ -81,7 +83,10 @@ export const DroppableList = ({
             position: cards.length,
           });
 
-        if (cardError) throw cardError;
+        if (cardError) {
+          console.error('Error creating card:', cardError);
+          throw cardError;
+        }
 
         // Delete dont-forget item
         const { error: deleteError } = await supabase
@@ -89,7 +94,10 @@ export const DroppableList = ({
           .delete()
           .eq('id', data.id);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting item:', deleteError);
+          throw deleteError;
+        }
 
         toast({
           title: "Item moved",

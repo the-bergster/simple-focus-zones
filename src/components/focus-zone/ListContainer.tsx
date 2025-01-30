@@ -23,6 +23,7 @@ export const ListContainer = ({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      style={{ pointerEvents: 'auto' }}
     >
       <Card 
         className={cn(
