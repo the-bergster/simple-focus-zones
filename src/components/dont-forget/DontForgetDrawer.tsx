@@ -113,6 +113,35 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, item: DontForgetItem) => {
+    console.log('Drag started:', item);
+    
+    // Create a ghost image for dragging
+    const dragPreview = document.createElement('div');
+    dragPreview.style.width = '300px';
+    dragPreview.className = 'task-card fixed -left-[9999px]';
+    dragPreview.innerHTML = `
+      <div class="p-3">
+        <h3 class="text-sm font-medium">${item.title}</h3>
+        ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
+      </div>
+    `;
+    document.body.appendChild(dragPreview);
+    e.dataTransfer.setDragImage(dragPreview, 0, 0);
+    setTimeout(() => document.body.removeChild(dragPreview), 0);
+    
+    const transferData = {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      type: 'dont-forget-item'
+    };
+    
+    console.log('Setting drag data:', transferData);
+    e.dataTransfer.setData('text/plain', JSON.stringify(transferData));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent 
@@ -168,29 +197,10 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
                 <div 
                   key={item.id}
                   draggable="true"
-                  onDragStart={(e) => {
-                    const dragPreview = document.createElement('div');
-                    dragPreview.style.width = '300px';
-                    dragPreview.className = 'task-card fixed -left-[9999px]';
-                    dragPreview.innerHTML = `
-                      <div class="p-3">
-                        <h3 class="text-sm font-medium">${item.title}</h3>
-                        ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
-                      </div>
-                    `;
-                    document.body.appendChild(dragPreview);
-                    e.dataTransfer.setDragImage(dragPreview, 0, 0);
-                    setTimeout(() => document.body.removeChild(dragPreview), 0);
-                    
-                    e.dataTransfer.setData('text/plain', JSON.stringify({
-                      id: item.id,
-                      title: item.title,
-                      description: item.description,
-                      type: 'dont-forget-item'
-                    }));
-                  }}
+                  onDragStart={(e) => handleDragStart(e, item)}
+                  className="cursor-move"
                 >
-                  <Card className="task-card group">
+                  <Card className="task-card group hover:shadow-md transition-all duration-200">
                     <CardHeader className="p-3">
                       <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
                     </CardHeader>

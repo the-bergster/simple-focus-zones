@@ -42,6 +42,11 @@ export const DroppableList = ({
       const rawData = e.dataTransfer.getData('text/plain');
       console.log('Raw drop data:', rawData);
       
+      if (!rawData) {
+        console.error('No data received in drop event');
+        return;
+      }
+
       const data = JSON.parse(rawData);
       console.log('Parsed drop data:', data);
       
@@ -61,7 +66,10 @@ export const DroppableList = ({
           return;
         }
 
-        console.log('Creating new card in list:', list.id);
+        // Get the current number of cards in the list for position
+        const position = cards.length;
+        console.log('Creating new card in list:', list.id, 'at position:', position);
+
         // Create a new card in the list
         const { data: newCard, error: cardError } = await supabase
           .from('cards')
@@ -69,7 +77,7 @@ export const DroppableList = ({
             title: data.title,
             description: data.description,
             list_id: list.id,
-            position: cards.length,
+            position: position,
           })
           .select()
           .single();
@@ -150,7 +158,7 @@ export const DroppableList = ({
       onDrop={handleDrop}
     >
       <div className="px-3">
-        <div className={`task-list transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50' : ''}`}>
+        <div className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border border-white/20 transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50 bg-white/80' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <ListTitle
               listId={list.id}
