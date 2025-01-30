@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
 import { DraggableCard } from "./DraggableCard";
 import { ListTitle } from "./ListTitle";
@@ -25,6 +24,7 @@ export const DroppableList = ({
 }: DroppableListProps) => {
   const [isCreateCardDialogOpen, setIsCreateCardDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [isDragOver, setIsDragOver] = useState(false);
   
   const { setNodeRef } = useSortable({
     id: list.id,
@@ -36,6 +36,8 @@ export const DroppableList = ({
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    setIsDragOver(false);
+    
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
       if (data.type === 'dont-forget-item') {
@@ -91,23 +93,15 @@ export const DroppableList = ({
         className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
         onDragOver={(e) => {
           e.preventDefault();
-          e.currentTarget.style.opacity = '0.7';
+          setIsDragOver(true);
         }}
-        onDragLeave={(e) => {
-          e.currentTarget.style.opacity = '1';
+        onDragLeave={() => {
+          setIsDragOver(false);
         }}
-        onDrop={(e) => {
-          e.currentTarget.style.opacity = '1';
-          handleDrop(e);
-        }}
+        onDrop={handleDrop}
       >
         <div className="px-3">
-          <div className={`bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border transition-all duration-300 
-            ${list.is_focused 
-              ? 'border-primary/50 ring-2 ring-primary/30 shadow-lg shadow-primary/20' 
-              : 'border-border/30'} 
-            min-h-[100px] max-h-[calc(100vh-12rem)] overflow-y-auto no-scrollbar hover:shadow-md`}
-          >
+          <div className={`task-list transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50' : ''}`}>
             <div className="flex items-center justify-between mb-4">
               <ListTitle
                 listId={list.id}
@@ -120,16 +114,11 @@ export const DroppableList = ({
               />
             </div>
             <div className="space-y-3">
-              <SortableContext
-                items={cards.map(card => card.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {cards
-                  .sort((a, b) => a.position - b.position)
-                  .map(card => (
-                    <DraggableCard key={card.id} card={card} />
-                  ))}
-              </SortableContext>
+              {cards
+                .sort((a, b) => a.position - b.position)
+                .map(card => (
+                  <DraggableCard key={card.id} card={card} />
+                ))}
               <Button
                 variant="ghost"
                 className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"

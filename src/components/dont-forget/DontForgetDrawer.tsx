@@ -170,10 +170,13 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
                   draggable="true"
                   onDragStart={(e) => {
                     const dragPreview = document.createElement('div');
-                    dragPreview.className = 'task-card';
+                    dragPreview.style.width = '300px';
+                    dragPreview.className = 'task-card fixed -left-[9999px]';
                     dragPreview.innerHTML = `
-                      <h3 class="text-sm font-medium">${item.title}</h3>
-                      ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
+                      <div class="p-3">
+                        <h3 class="text-sm font-medium">${item.title}</h3>
+                        ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
+                      </div>
                     `;
                     document.body.appendChild(dragPreview);
                     e.dataTransfer.setDragImage(dragPreview, 0, 0);
