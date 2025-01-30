@@ -125,29 +125,12 @@ export const DroppableList = ({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    console.log('Drag over event triggered');
     e.preventDefault();
     e.stopPropagation();
-    
-    // Check if the dragged item is a dont-forget-item
-    const types = e.dataTransfer.types;
-    console.log('Drag types:', types);
-    
-    if (types.includes('text/plain')) {
-      try {
-        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-        console.log('Drag over data:', data);
-        if (data.type === 'dont-forget-item') {
-          setIsDragOver(true);
-        }
-      } catch (error) {
-        console.error('Error parsing drag data:', error);
-      }
-    }
+    setIsDragOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    console.log('Drag leave event triggered');
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
