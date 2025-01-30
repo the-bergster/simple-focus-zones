@@ -143,6 +143,7 @@ export const DroppableList = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        style={{ pointerEvents: 'auto' }} // Ensure events aren't blocked
       >
         <div 
           className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border ${
