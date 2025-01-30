@@ -40,24 +40,33 @@ export const DroppableList = ({
     
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-      console.log('Dropped data:', data); // Debug log
+      console.log('Dropped data:', data);
       
       if (data.type === 'dont-forget-item') {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("No user found");
+        if (!user) {
+          toast({
+            title: "Authentication error",
+            description: "You must be logged in to perform this action",
+            variant: "destructive",
+          });
+          return;
+        }
 
         // Create a new card in the list
-        const { error: cardError } = await supabase
+        const { data: newCard, error: cardError } = await supabase
           .from('cards')
           .insert({
             title: data.title,
             description: data.description,
             list_id: list.id,
             position: cards.length,
-          });
+          })
+          .select()
+          .single();
 
         if (cardError) {
-          console.error('Card creation error:', cardError); // Debug log
+          console.error('Card creation error:', cardError);
           throw cardError;
         }
 
@@ -68,17 +77,24 @@ export const DroppableList = ({
           .eq('id', data.id);
 
         if (deleteError) {
-          console.error('Delete error:', deleteError); // Debug log
+          console.error('Delete error:', deleteError);
+          // If deletion fails, we should remove the card we just created
+          if (newCard) {
+            await supabase
+              .from('cards')
+              .delete()
+              .eq('id', newCard.id);
+          }
           throw deleteError;
         }
 
         toast({
-          title: "Card moved",
+          title: "Card created",
           description: "Item has been moved to the list successfully",
         });
       }
     } catch (error) {
-      console.error('Drop error:', error); // Debug log
+      console.error('Drop error:', error);
       toast({
         title: "Error moving item",
         description: error instanceof Error ? error.message : "Failed to move item",
@@ -87,20 +103,24 @@ export const DroppableList = ({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
   return (
     <div 
       ref={setNodeRef}
       className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(true);
-      }}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-      }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="px-3">
@@ -133,6 +153,13 @@ export const DroppableList = ({
           </div>
         </div>
       </div>
+
+      <CardOperationsDialog
+        open={isCreateCardDialogOpen}
+        onOpenChange={setIsCreateCardDialogOpen}
+        mode="create"
+        listId={list.id}
+      />
     </div>
   );
 };
