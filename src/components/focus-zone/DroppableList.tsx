@@ -27,13 +27,21 @@ export const DroppableList = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const { toast } = useToast();
   
-  const { setNodeRef, attributes, listeners } = useSortable({
+  const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id: list.id,
     data: {
       type: 'list',
       list,
     },
   });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    position: isInDrawer ? 'relative' : undefined,
+    zIndex: isInDrawer ? 1002 : undefined,
+    pointerEvents: 'auto' as const,
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -96,11 +104,7 @@ export const DroppableList = ({
       {...attributes}
       {...listeners}
       className={listClasses}
-      style={{ 
-        position: isInDrawer ? 'relative' : undefined,
-        zIndex: isInDrawer ? 1002 : undefined,
-        pointerEvents: 'auto'
-      }}
+      style={style}
     >
       <ListContainer
         isDragOver={isDragOver}

@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { DroppableList } from "../focus-zone/DroppableList";
 import type { List, Card } from '@/types/focus-zone';
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [dontForgetList, setDontForgetList] = useState<List | null>(null);
@@ -20,7 +21,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       },
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: closestCorners,
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
