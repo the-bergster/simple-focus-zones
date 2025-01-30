@@ -115,94 +115,100 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <div className="fixed inset-0 z-50 pointer-events-none">
-        <SheetContent 
-          side="right" 
-          className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl pointer-events-auto"
-        >
-          <SheetHeader>
-            <SheetTitle>Don't Forget Box</SheetTitle>
-          </SheetHeader>
-          
-          <div className="mt-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                placeholder="What do you need to remember?"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                disabled={adding}
-              />
-              <Textarea
-                placeholder="Add more details (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={adding}
-              />
-              <Button type="submit" disabled={adding || !title.trim()}>
-                {adding ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </>
-                )}
-              </Button>
-            </form>
-          </div>
+      <SheetContent 
+        side="right" 
+        className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl"
+        style={{ 
+          position: 'fixed',
+          right: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 50,
+          boxShadow: '0 0 0 100vw rgba(0, 0, 0, 0)',
+        }}
+      >
+        <SheetHeader>
+          <SheetTitle>Don't Forget Box</SheetTitle>
+        </SheetHeader>
+        
+        <div className="mt-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              placeholder="What do you need to remember?"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={adding}
+            />
+            <Textarea
+              placeholder="Add more details (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={adding}
+            />
+            <Button type="submit" disabled={adding || !title.trim()}>
+              {adding ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
 
-          <div className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2">
-            {loading ? (
-              <div className="flex justify-center">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : items.length === 0 ? (
-              <p className="text-center text-muted-foreground">
-                Your Don't Forget Box is empty
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <Card 
-                    key={item.id}
-                    className="cursor-move"
-                    draggable="true"
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', JSON.stringify({
-                        id: item.id,
-                        title: item.title,
-                        description: item.description,
-                        type: 'dont-forget-item'
-                      }));
-                    }}
-                  >
-                    <CardHeader>
-                      <CardTitle className="text-base">{item.title}</CardTitle>
-                    </CardHeader>
-                    {item.description && (
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                      </CardContent>
-                    )}
-                    <CardFooter className="justify-end">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </div>
+        <div className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2">
+          {loading ? (
+            <div className="flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : items.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              Your Don't Forget Box is empty
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item) => (
+                <Card 
+                  key={item.id}
+                  className="cursor-move"
+                  draggable="true"
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({
+                      id: item.id,
+                      title: item.title,
+                      description: item.description,
+                      type: 'dont-forget-item'
+                    }));
+                  }}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-base">{item.title}</CardTitle>
+                  </CardHeader>
+                  {item.description && (
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </CardContent>
+                  )}
+                  <CardFooter className="justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </SheetContent>
     </Sheet>
   );
 }
