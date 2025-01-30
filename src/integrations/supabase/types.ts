@@ -47,36 +47,6 @@ export type Database = {
           },
         ]
       }
-      dont_forget_items: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          owner_id: string
-          processed: boolean | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          owner_id: string
-          processed?: boolean | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          owner_id?: string
-          processed?: boolean | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       focus_zones: {
         Row: {
           created_at: string
@@ -109,6 +79,7 @@ export type Database = {
           created_at: string
           focus_zone_id: string
           id: string
+          is_dont_forget_box: boolean | null
           is_focused: boolean | null
           position: number
           title: string
@@ -118,6 +89,7 @@ export type Database = {
           created_at?: string
           focus_zone_id: string
           id?: string
+          is_dont_forget_box?: boolean | null
           is_focused?: boolean | null
           position: number
           title: string
@@ -127,6 +99,7 @@ export type Database = {
           created_at?: string
           focus_zone_id?: string
           id?: string
+          is_dont_forget_box?: boolean | null
           is_focused?: boolean | null
           position?: number
           title?: string

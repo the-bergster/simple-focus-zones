@@ -36,83 +36,53 @@ export const DroppableList = ({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-    console.log('Drag over list:', list.title);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    console.log('Drag leave list:', list.title);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    console.log('Drop event on list:', list.title);
     
     try {
       const rawData = e.dataTransfer.getData('text/plain');
-      console.log('Raw drop data:', rawData);
-      
-      if (!rawData) {
-        console.error('No data received in drop event');
-        return;
-      }
+      if (!rawData) return;
 
       const data = JSON.parse(rawData);
-      console.log('Parsed drop data:', data);
       
-      if (data.type === 'dont-forget-item') {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast({
-            title: "Authentication error",
-            description: "You must be logged in to perform this action",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Create new card
-        const { error: cardError } = await supabase
+      if (data.type === 'card') {
+        const { error } = await supabase
           .from('cards')
-          .insert({
-            title: data.title,
-            description: data.description,
+          .update({
             list_id: list.id,
             position: cards.length,
-          });
+          })
+          .eq('id', data.card.id);
 
-        if (cardError) {
-          console.error('Error creating card:', cardError);
-          throw cardError;
-        }
-
-        // Delete dont-forget item
-        const { error: deleteError } = await supabase
-          .from('dont_forget_items')
-          .delete()
-          .eq('id', data.id);
-
-        if (deleteError) {
-          console.error('Error deleting item:', deleteError);
-          throw deleteError;
-        }
+        if (error) throw error;
 
         toast({
-          title: "Item moved",
-          description: "Item has been moved to the list successfully",
+          title: "Card moved",
+          description: "Card has been moved to the list successfully",
         });
       }
     } catch (error) {
       console.error('Drop error:', error);
       toast({
-        title: "Error moving item",
-        description: error instanceof Error ? error.message : "Failed to move item",
+        title: "Error moving card",
+        description: error instanceof Error ? error.message : "Failed to move card",
         variant: "destructive",
       });
     }
   };
+
+  // Don't show the Don't Forget Box in the regular lists
+  if (list.is_dont_forget_box) {
+    return null;
+  }
 
   return (
     <div 

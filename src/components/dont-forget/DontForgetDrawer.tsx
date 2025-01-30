@@ -7,40 +7,48 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus, Trash } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface DontForgetItem {
-  id: string;
-  title: string;
-  description: string | null;
-  created_at: string;
-}
+import type { Card as CardType } from '@/types/focus-zone';
 
 export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [items, setItems] = useState<DontForgetItem[]>([]);
+  const [dontForgetList, setDontForgetList] = useState<{ id: string } | null>(null);
+  const [cards, setCards] = useState<CardType[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
-      fetchItems();
+      fetchDontForgetList();
     }
   }, [isOpen]);
 
-  const fetchItems = async () => {
+  const fetchDontForgetList = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const { data, error } = await supabase
-        .from('dont_forget_items')
+      // Get the don't forget box list
+      const { data: lists, error: listError } = await supabase
+        .from('lists')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('is_dont_forget_box', true)
+        .single();
 
-      if (error) throw error;
-      setItems(data || []);
+      if (listError) throw listError;
+      
+      setDontForgetList(lists);
+
+      // Get all cards in the don't forget box
+      const { data: cardsData, error: cardsError } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('list_id', lists.id)
+        .order('position');
+
+      if (cardsError) throw cardsError;
+      setCards(cardsData || []);
     } catch (error) {
       toast({
         title: "Error fetching items",
@@ -54,7 +62,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !dontForgetList) return;
 
     setAdding(true);
     try {
@@ -62,11 +70,12 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       if (!user) throw new Error("No user found");
 
       const { error } = await supabase
-        .from('dont_forget_items')
+        .from('cards')
         .insert({
           title: title.trim(),
           description: description.trim() || null,
-          owner_id: user.id,
+          list_id: dontForgetList.id,
+          position: cards.length,
         });
 
       if (error) throw error;
@@ -78,7 +87,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
       setTitle("");
       setDescription("");
-      fetchItems();
+      fetchDontForgetList();
     } catch (error) {
       toast({
         title: "Error adding item",
@@ -93,13 +102,13 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('dont_forget_items')
+        .from('cards')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
 
-      setItems(items.filter(item => item.id !== id));
+      setCards(cards.filter(card => card.id !== id));
       toast({
         title: "Item deleted",
         description: "The item has been removed from your Don't Forget Box",
@@ -113,32 +122,12 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, item: DontForgetItem) => {
-    console.log('Drag started:', item);
-    
-    // Create a ghost image for dragging
-    const dragPreview = document.createElement('div');
-    dragPreview.style.width = '300px';
-    dragPreview.className = 'task-card fixed -left-[9999px]';
-    dragPreview.innerHTML = `
-      <div class="p-3">
-        <h3 class="text-sm font-medium">${item.title}</h3>
-        ${item.description ? `<p class="text-xs text-muted-foreground mt-1">${item.description}</p>` : ''}
-      </div>
-    `;
-    document.body.appendChild(dragPreview);
-    e.dataTransfer.setDragImage(dragPreview, 0, 0);
-    setTimeout(() => document.body.removeChild(dragPreview), 0);
-    
-    const transferData = {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      type: 'dont-forget-item'
-    };
-    
-    console.log('Setting drag data:', transferData);
-    e.dataTransfer.setData('text/plain', JSON.stringify(transferData));
+  const handleDragStart = (e: React.DragEvent, card: CardType) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      id: card.id,
+      type: 'card',
+      card,
+    }));
     e.dataTransfer.effectAllowed = 'move';
   };
 
@@ -187,33 +176,33 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
-          ) : items.length === 0 ? (
+          ) : cards.length === 0 ? (
             <p className="text-center text-muted-foreground">
               Your Don't Forget Box is empty
             </p>
           ) : (
             <div className="space-y-4">
-              {items.map((item) => (
+              {cards.map((card) => (
                 <div 
-                  key={item.id}
+                  key={card.id}
                   draggable="true"
-                  onDragStart={(e) => handleDragStart(e, item)}
+                  onDragStart={(e) => handleDragStart(e, card)}
                   className="cursor-move"
                 >
                   <Card className="task-card group hover:shadow-md transition-all duration-200">
                     <CardHeader className="p-3">
-                      <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                      <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
                     </CardHeader>
-                    {item.description && (
+                    {card.description && (
                       <CardContent className="p-3 pt-0">
-                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                        <p className="text-xs text-muted-foreground">{card.description}</p>
                       </CardContent>
                     )}
                     <CardFooter className="justify-end p-3 pt-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(card.id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
