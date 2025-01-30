@@ -35,12 +35,15 @@ export const DroppableList = ({
   });
 
   const handleDrop = async (e: React.DragEvent) => {
+    console.log('Drop event triggered');
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
     
     try {
       const rawData = e.dataTransfer.getData('text/plain');
+      console.log('Drop data received:', rawData);
+      
       if (!rawData) {
         console.error('No data received in drop event');
         return;
@@ -122,12 +125,29 @@ export const DroppableList = ({
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    console.log('Drag over event triggered');
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    
+    // Check if the dragged item is a dont-forget-item
+    const types = e.dataTransfer.types;
+    console.log('Drag types:', types);
+    
+    if (types.includes('text/plain')) {
+      try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        console.log('Drag over data:', data);
+        if (data.type === 'dont-forget-item') {
+          setIsDragOver(true);
+        }
+      } catch (error) {
+        console.error('Error parsing drag data:', error);
+      }
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
+    console.log('Drag leave event triggered');
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
@@ -143,7 +163,7 @@ export const DroppableList = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={{ pointerEvents: 'auto' }} // Ensure events aren't blocked
+        style={{ pointerEvents: 'auto' }}
       >
         <div 
           className={`task-list rounded-lg p-4 bg-white/50 backdrop-blur-sm border ${
