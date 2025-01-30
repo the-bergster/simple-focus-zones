@@ -6,8 +6,6 @@ import { DraggableCard } from "./DraggableCard";
 import { ListTitle } from "./ListTitle";
 import { ListActions } from "./ListActions";
 import { CardOperationsDialog } from "./CardOperationsDialog";
-import { FloatingActionButton } from "@/components/dont-forget/FloatingActionButton";
-import { DontForgetDrawer } from "@/components/dont-forget/DontForgetDrawer";
 import type { List, Card } from '@/types/focus-zone';
 
 interface DroppableListProps {
@@ -24,7 +22,6 @@ export const DroppableList = ({
   isFirstList = false,
 }: DroppableListProps) => {
   const [isCreateCardDialogOpen, setIsCreateCardDialogOpen] = useState(false);
-  const [isDontForgetOpen, setIsDontForgetOpen] = useState(false);
   
   const { setNodeRef } = useSortable({
     id: list.id,
@@ -41,11 +38,6 @@ export const DroppableList = ({
         onOpenChange={setIsCreateCardDialogOpen}
         mode="create"
         listId={list.id}
-      />
-
-      <DontForgetDrawer 
-        isOpen={isDontForgetOpen} 
-        onClose={() => setIsDontForgetOpen(false)} 
       />
 
       <div 
@@ -81,24 +73,14 @@ export const DroppableList = ({
                     <DraggableCard key={card.id} card={card} />
                   ))}
               </SortableContext>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  className="flex-1 justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50 group"
-                  size="sm"
-                  onClick={() => setIsCreateCardDialogOpen(true)}
-                >
-                  <span className="text-sm">Add a card</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  size="sm"
-                  onClick={() => setIsDontForgetOpen(true)}
-                >
-                  <span className="text-sm">Don't Forget Box</span>
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                size="sm"
+                onClick={() => setIsCreateCardDialogOpen(true)}
+              >
+                <span className="text-sm">Add a card</span>
+              </Button>
             </div>
           </div>
         </div>

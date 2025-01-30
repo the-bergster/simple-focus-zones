@@ -10,7 +10,6 @@ interface ListsContainerProps {
   cards: CardType[];
   onAddList: () => void;
   onDeleteList: (listId: string) => void;
-  onAddCard: (listId: string) => void;
   onDragStart: (event: any) => void;
   onDragOver: (event: any) => void;
   onDragEnd: (event: any) => void;
@@ -22,7 +21,6 @@ export const ListsContainer = ({
   cards,
   onAddList,
   onDeleteList,
-  onAddCard,
   onDragStart,
   onDragOver,
   onDragEnd,
@@ -54,7 +52,6 @@ export const ListsContainer = ({
             list={list}
             cards={cards.filter(card => card.list_id === list.id)}
             onDeleteList={onDeleteList}
-            onAddCard={() => onAddCard(list.id)}
             isFirstList={index === 0}
           />
         ))}

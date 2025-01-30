@@ -5,6 +5,8 @@ import { WarningDialog } from "@/components/ui/warning-dialog";
 import { useListOperations } from '@/hooks/useListOperations';
 import { useCardOperations } from '@/hooks/useCardOperations';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
+import { FloatingActionButton } from "@/components/dont-forget/FloatingActionButton";
+import { DontForgetDrawer } from "@/components/dont-forget/DontForgetDrawer";
 import type { Card, List } from '@/types/focus-zone';
 
 interface FocusZoneContentProps {
@@ -24,6 +26,7 @@ export const FocusZoneContent = ({
 }: FocusZoneContentProps) => {
   const [deleteListWarningOpen, setDeleteListWarningOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<string | null>(null);
+  const [isDontForgetOpen, setIsDontForgetOpen] = useState(false);
   
   const {
     createList,
@@ -73,6 +76,11 @@ export const FocusZoneContent = ({
         onSubmit={createCard}
       />
 
+      <DontForgetDrawer 
+        isOpen={isDontForgetOpen} 
+        onClose={() => setIsDontForgetOpen(false)} 
+      />
+
       <WarningDialog
         open={deleteListWarningOpen}
         onOpenChange={setDeleteListWarningOpen}
@@ -86,20 +94,19 @@ export const FocusZoneContent = ({
         }}
       />
 
-      <ListsContainer
-        lists={lists}
-        cards={cards}
-        onAddList={handleAddList}
-        onDeleteList={handleDeleteListClick}
-        onAddCard={(listId) => {
-          setActiveListId(listId);
-          setIsCardDialogOpen(true);
-        }}
-        onDragStart={handleDragStart}
-        onDragOver={(event) => handleDragOver(event, lists)}
-        onDragEnd={handleDragEnd}
-        activeCard={activeCard}
-      />
+      <div className="relative">
+        <ListsContainer
+          lists={lists}
+          cards={cards}
+          onAddList={handleAddList}
+          onDeleteList={handleDeleteListClick}
+          onDragStart={handleDragStart}
+          onDragOver={(event) => handleDragOver(event, lists)}
+          onDragEnd={handleDragEnd}
+          activeCard={activeCard}
+        />
+        <FloatingActionButton onClick={() => setIsDontForgetOpen(true)} />
+      </div>
     </>
   );
 };
