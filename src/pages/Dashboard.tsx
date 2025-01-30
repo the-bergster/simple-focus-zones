@@ -13,6 +13,8 @@ import { PlusCircle, Loader2, Edit, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FloatingActionButton } from "@/components/dont-forget/FloatingActionButton";
+import { DontForgetDrawer } from "@/components/dont-forget/DontForgetDrawer";
 
 interface FocusZone {
   id: string;
@@ -37,6 +39,7 @@ const Dashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteWarningOpen, setDeleteWarningOpen] = useState(false);
   const [zoneToDelete, setZoneToDelete] = useState<string | null>(null);
+  const [isDontForgetOpen, setIsDontForgetOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -357,6 +360,11 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      <FloatingActionButton onClick={() => setIsDontForgetOpen(true)} />
+      <DontForgetDrawer 
+        isOpen={isDontForgetOpen} 
+        onClose={() => setIsDontForgetOpen(false)} 
+      />
     </div>
   );
 };

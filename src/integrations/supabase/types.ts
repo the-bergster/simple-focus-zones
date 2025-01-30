@@ -47,6 +47,36 @@ export type Database = {
           },
         ]
       }
+      dont_forget_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          owner_id: string
+          processed: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id: string
+          processed?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string
+          processed?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       focus_zones: {
         Row: {
           created_at: string
