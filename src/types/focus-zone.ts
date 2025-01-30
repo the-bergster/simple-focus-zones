@@ -6,6 +6,7 @@ export interface List {
   created_at: string;
   updated_at: string;
   is_focused: boolean | null;
+  is_dont_forget_box: boolean | null;
 }
 
 export interface Card {
