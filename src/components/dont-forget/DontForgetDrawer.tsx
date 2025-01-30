@@ -115,7 +115,11 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+      <SheetContent 
+        side="right" 
+        className="w-[400px] sm:w-[540px] bg-background/95 backdrop-blur-xl"
+        style={{ pointerEvents: 'auto' }}
+      >
         <SheetHeader>
           <SheetTitle>Don't Forget Box</SheetTitle>
         </SheetHeader>
@@ -162,7 +166,19 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <Card key={item.id}>
+                <Card 
+                  key={item.id}
+                  className="cursor-move"
+                  draggable="true"
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({
+                      id: item.id,
+                      title: item.title,
+                      description: item.description,
+                      type: 'dont-forget-item'
+                    }));
+                  }}
+                >
                   <CardHeader>
                     <CardTitle className="text-base">{item.title}</CardTitle>
                   </CardHeader>

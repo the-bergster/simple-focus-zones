@@ -6,6 +6,8 @@ import { DraggableCard } from "./DraggableCard";
 import { ListTitle } from "./ListTitle";
 import { ListActions } from "./ListActions";
 import { CardOperationsDialog } from "./CardOperationsDialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import type { List, Card } from '@/types/focus-zone';
 
 interface DroppableListProps {
@@ -22,6 +24,7 @@ export const DroppableList = ({
   isFirstList = false,
 }: DroppableListProps) => {
   const [isCreateCardDialogOpen, setIsCreateCardDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   const { setNodeRef } = useSortable({
     id: list.id,
@@ -30,6 +33,48 @@ export const DroppableList = ({
       list,
     },
   });
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.type === 'dont-forget-item') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("No user found");
+
+        // Create a new card in the list
+        const { error: cardError } = await supabase
+          .from('cards')
+          .insert({
+            title: data.title,
+            description: data.description,
+            list_id: list.id,
+            position: cards.length,
+          });
+
+        if (cardError) throw cardError;
+
+        // Delete the item from dont_forget_items
+        const { error: deleteError } = await supabase
+          .from('dont_forget_items')
+          .delete()
+          .eq('id', data.id);
+
+        if (deleteError) throw deleteError;
+
+        toast({
+          title: "Card moved",
+          description: "Item has been moved to the list successfully",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error moving item",
+        description: error instanceof Error ? error.message : "Failed to move item",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -43,6 +88,8 @@ export const DroppableList = ({
       <div 
         ref={setNodeRef}
         className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
       >
         <div className="px-3">
           <div className={`bg-secondary/90 backdrop-blur-xl rounded-2xl p-4 shadow-sm border transition-all duration-300 
