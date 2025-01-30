@@ -7,6 +7,7 @@ import { ListContainer } from "./ListContainer";
 import { ListHeader } from "./ListHeader";
 import { ListCards } from "./ListCards";
 import type { List, Card } from '@/types/focus-zone';
+import type { CSSProperties } from 'react';
 
 interface DroppableListProps {
   list: List;
@@ -35,12 +36,13 @@ export const DroppableList = ({
     },
   });
 
-  const style = {
+  const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
-    position: isInDrawer ? 'relative' : undefined,
+    position: isInDrawer ? 'relative' : 'static',
     zIndex: isInDrawer ? 1002 : undefined,
-    pointerEvents: 'auto' as const,
+    pointerEvents: 'auto',
+    opacity: isDragging ? 0.5 : undefined,
   };
 
   const handleDragOver = (e: React.DragEvent) => {

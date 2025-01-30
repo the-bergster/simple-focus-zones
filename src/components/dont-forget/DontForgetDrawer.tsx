@@ -12,6 +12,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
   const [dontForgetList, setDontForgetList] = useState<List | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -36,7 +37,6 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // Get the don't forget box list
       const { data: lists, error: listError } = await supabase
         .from('lists')
         .select('*')
@@ -47,7 +47,6 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
       
       setDontForgetList(lists);
 
-      // Get all cards in the don't forget box
       const { data: cardsData, error: cardsError } = await supabase
         .from('cards')
         .select('*')
@@ -65,6 +64,18 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDragStart = (event: any) => {
+    const { active } = event;
+    const draggedCard = cards.find(card => card.id === active.id);
+    if (draggedCard) {
+      setActiveCard(draggedCard);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setActiveCard(null);
   };
 
   // Dummy function since we can't delete the Don't Forget Box
@@ -87,6 +98,8 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
           <div 
             className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2"
@@ -113,6 +126,19 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
               />
             )}
           </div>
+          
+          <DragOverlay>
+            {activeCard ? (
+              <div className="p-4 bg-white rounded-lg shadow-lg border">
+                <h3 className="text-sm font-medium">{activeCard.title}</h3>
+                {activeCard.description && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {activeCard.description}
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </SheetContent>
     </Sheet>
