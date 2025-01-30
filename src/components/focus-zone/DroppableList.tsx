@@ -40,6 +40,8 @@ export const DroppableList = ({
     
     try {
       const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      console.log('Dropped data:', data); // Debug log
+      
       if (data.type === 'dont-forget-item') {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("No user found");
@@ -54,7 +56,10 @@ export const DroppableList = ({
             position: cards.length,
           });
 
-        if (cardError) throw cardError;
+        if (cardError) {
+          console.error('Card creation error:', cardError); // Debug log
+          throw cardError;
+        }
 
         // Delete the item from dont_forget_items
         const { error: deleteError } = await supabase
@@ -62,7 +67,10 @@ export const DroppableList = ({
           .delete()
           .eq('id', data.id);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error('Delete error:', deleteError); // Debug log
+          throw deleteError;
+        }
 
         toast({
           title: "Card moved",
@@ -70,7 +78,7 @@ export const DroppableList = ({
         });
       }
     } catch (error) {
-      console.error('Drop error:', error);
+      console.error('Drop error:', error); // Debug log
       toast({
         title: "Error moving item",
         description: error instanceof Error ? error.message : "Failed to move item",
@@ -80,57 +88,51 @@ export const DroppableList = ({
   };
 
   return (
-    <>
-      <CardOperationsDialog
-        open={isCreateCardDialogOpen}
-        onOpenChange={setIsCreateCardDialogOpen}
-        mode="create"
-        listId={list.id}
-      />
-
-      <div 
-        ref={setNodeRef}
-        className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragOver(true);
-        }}
-        onDragLeave={() => {
-          setIsDragOver(false);
-        }}
-        onDrop={handleDrop}
-      >
-        <div className="px-3">
-          <div className={`task-list transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50' : ''}`}>
-            <div className="flex items-center justify-between mb-4">
-              <ListTitle
-                listId={list.id}
-                initialTitle={list.title}
-              />
-              <ListActions
-                listId={list.id}
-                isFocused={list.is_focused}
-                onDelete={() => onDeleteList(list.id)}
-              />
-            </div>
-            <div className="space-y-3">
-              {cards
-                .sort((a, b) => a.position - b.position)
-                .map(card => (
-                  <DraggableCard key={card.id} card={card} />
-                ))}
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                size="sm"
-                onClick={() => setIsCreateCardDialogOpen(true)}
-              >
-                <span className="text-sm">Add a card</span>
-              </Button>
-            </div>
+    <div 
+      ref={setNodeRef}
+      className={`flex-none w-[320px] ${isFirstList ? 'ml-6' : ''}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+      }}
+      onDrop={handleDrop}
+    >
+      <div className="px-3">
+        <div className={`task-list transition-all duration-200 ${isDragOver ? 'ring-2 ring-primary/50' : ''}`}>
+          <div className="flex items-center justify-between mb-4">
+            <ListTitle
+              listId={list.id}
+              initialTitle={list.title}
+            />
+            <ListActions
+              listId={list.id}
+              isFocused={list.is_focused}
+              onDelete={() => onDeleteList(list.id)}
+            />
+          </div>
+          <div className="space-y-3">
+            {cards
+              .sort((a, b) => a.position - b.position)
+              .map(card => (
+                <DraggableCard key={card.id} card={card} />
+              ))}
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              size="sm"
+              onClick={() => setIsCreateCardDialogOpen(true)}
+            >
+              <span className="text-sm">Add a card</span>
+            </Button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
