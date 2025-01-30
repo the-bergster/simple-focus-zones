@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +23,11 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
   const [adding, setAdding] = useState(false);
   const { toast } = useToast();
 
-  // Fetch items when drawer opens
-  useState(() => {
+  useEffect(() => {
     if (isOpen) {
       fetchItems();
     }
-  });
+  }, [isOpen]);
 
   const fetchItems = async () => {
     try {
@@ -151,7 +150,7 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
           </form>
         </div>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 h-[calc(100vh-300px)] overflow-y-auto pr-2">
           {loading ? (
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -161,27 +160,29 @@ export function DontForgetDrawer({ isOpen, onClose }: { isOpen: boolean; onClose
               Your Don't Forget Box is empty
             </p>
           ) : (
-            items.map((item) => (
-              <Card key={item.id}>
-                <CardHeader>
-                  <CardTitle className="text-base">{item.title}</CardTitle>
-                </CardHeader>
-                {item.description && (
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  </CardContent>
-                )}
-                <CardFooter className="justify-end">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))
+            <div className="space-y-4">
+              {items.map((item) => (
+                <Card key={item.id}>
+                  <CardHeader>
+                    <CardTitle className="text-base">{item.title}</CardTitle>
+                  </CardHeader>
+                  {item.description && (
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                    </CardContent>
+                  )}
+                  <CardFooter className="justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </SheetContent>
